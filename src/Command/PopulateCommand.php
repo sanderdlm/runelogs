@@ -11,6 +11,10 @@ use App\Utils\DatabaseService;
 
 class PopulateCommand extends Command
 {
+	private $apiService;
+
+	private $databaseService;
+	
     protected static $defaultName = 'app:populate';
 
     public function __construct(ApiService $apiService, DatabaseService $databaseService)
@@ -28,14 +32,14 @@ class PopulateCommand extends Command
 		foreach ($clanNames as $clanIndex => &$clanName) {
 			echo $clanIndex;
 			$clanName = str_replace(' ', '+', strtolower(trim($clanName)));
-			$clanObject = $db->findClanByName($clanName);
+			$clanObject = $this->databaseService->findClanByName($clanName);
 			if(!$clanObject){
-				$clanId = $db->addClan($clanName);
+				$clanId = $this->databaseService->addClan($clanName);
 			} else {
 				$clanId = $clanObject->cl_id;
 			}
 
-			$clanMemberList = $api->getClanList($clanName);
+			$clanMemberList = $this->apiService->getClanList($clanName);
 
 			if($clanMemberList == null){
 				continue; //move next
@@ -43,15 +47,15 @@ class PopulateCommand extends Command
 
 			foreach ($clanMemberList as &$clanMember) {
 
-				$userObject = $db->findUserByName($clanMember);
+				$userObject = $this->databaseService->findUserByName($clanMember);
 
 				if(!$userObject){
-			        $db->addUser($clanMember, $clanId);
+			        $this->databaseService->addUser($clanMember, $clanId);
 			        continue;
 				}
 
 				if($userObject->us_cl_id != $clanId){
-					$db->updateUser($userObject->us_id, $clanId);
+					$this->databaseService->updateUser($userObject->us_id, $clanId);
 				}
 			}
 			echo '+';

@@ -10,6 +10,8 @@ use App\Utils\UpdateService;
 
 class UpdateCommand extends Command
 {
+    private $updateService;
+
     protected static $defaultName = 'app:update';
 
     public function __construct(UpdateService $updateService)

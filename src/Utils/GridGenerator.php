@@ -5,6 +5,8 @@ namespace App\Utils;
 
 class GridGenerator
 {
+    private $redisService;
+    
     private $fillArray = array(
         500 => "sweat",
         250 => "high",

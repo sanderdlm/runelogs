@@ -11,6 +11,8 @@ use App\Utils\RedisService;
 
 class ApiController extends AbstractController
 {
+	private $redisService;
+	
     public function __construct(RedisService $redisService)
     {
         $this->redisService = $redisService;

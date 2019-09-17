@@ -14,6 +14,14 @@ use Symfony\Component\Routing\Annotation\Route;
 
 class ProfileController extends AbstractController
 {
+    private $apiService;
+
+    private $databaseService;
+
+    private $gridGenerator;
+
+    private $redisService;
+    
     public function __construct(
         ApiService $apiService,
         DatabaseService $databaseService,
