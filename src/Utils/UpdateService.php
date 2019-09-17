@@ -47,9 +47,11 @@ class UpdateService
     	$clans = $this->db->getClans();
 
     	foreach ($clans as $clan) {
-    		echo "#" . $clan->cl_name . "[";
     		$this->rosterUpdate($clan);
-    		echo "] \r\n";
+        }
+
+        foreach ($clans as $clan) {
+            echo "#" . $clan->cl_name . "[";
     		$clanList = $this->db->getClanMembers($clan->cl_id);
     		
     		$chunkedClanList = array_chunk($clanList, $this->chunkSize);
@@ -145,9 +147,8 @@ class UpdateService
 
 	            echo $this->stopTimer() . "s) \r\n";
 	        }
-	        
+	        echo "] \r\n";
     	}
-    	
     }
 
     private function matchUsers(object $clan, array $list)
