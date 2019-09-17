@@ -27,28 +27,33 @@ class ProfileController extends AbstractController
     }
 
     /**
-     * @Route("/profile/{username}", methods={"GET", "POST"})
+     * @Route("/profile/{username}", methods={"GET", "POST"}, name="profile")
      * @param string|null $username
      * @return Response
      */
-    public function index(?string $username): Response
+    public function index(string $username): Response
     {
-        if ($username === null) {
+        if ($username !== null) {
+
+            $cleanUsername = $this->apiService->norm($username);
+            $user = $this->databaseService->findUserByName($cleanUsername);
+
+            if ($user) {
+                $year = 2019;
+                $grid = $this->gridGenerator->generate($user->us_id, $year);
+                $today = date('z');
+                $profile = $this->redisService->getDataFromRedis($user->us_id, $year, $today);
+            } else {
+                $this->databaseService->addUser($cleanUsername, 0);
+            }
+
+        } else {
             $user = null;
-        }
-
-        $cleanUsername = $this->apiService->norm($username);
-        $user = $this->databaseService->findUserByName($cleanUsername);
-
-        if ($user) {
-            $year = 2019;
-            $grid = $this->gridGenerator->generate($user->us_id, $year);
-            $today = date('z');
-            $profile = $this->redisService->getDataFromRedis($user->us_id, $year, $today);
         }
 
         return $this->render('profile.html.twig',[
             'user' => $user,
+            'year' => $year,
             'grid' => $grid,
             'profile' => $profile
         ]);

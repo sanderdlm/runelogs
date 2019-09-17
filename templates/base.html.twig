@@ -56,11 +56,11 @@
         <div class="profile-header">
 
             <section class="current">
-                <h1 data-id="{{ userId }}">{{ user|capitalize }}</h1>
+                <h1 data-id="{{ user.us_id }}">{{ user.us_name|capitalize }}</h1>
             </section>
 
             <section class='search'>
-                <form action="/profile/{{ user }}" method="post">
+                <form action="/profile/{{ user.us_name }}" method="post">
                     <input type="text" name="search" aria-label="search" placeholder="Search..." value="{{ (search is defined) ? search : '' }}" />
                     <input type="submit" aria-label="search-submit" value="" />
                 </form>

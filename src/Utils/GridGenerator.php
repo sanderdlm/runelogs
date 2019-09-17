@@ -3,13 +3,8 @@
 
 namespace App\Utils;
 
-use Predis;
-
 class GridGenerator
 {
-    /** @var Predis\Client */
-    private $redis;
-
     private $fillArray = array(
         500 => "sweat",
         250 => "high",
@@ -18,9 +13,9 @@ class GridGenerator
         0 => "nothing"
     );
 
-    public function __construct()
+    public function __construct(RedisService $redisService)
     {
-        $this->redis = new RedisService();
+        $this->redisService = $redisService;
     }
 
     /**
@@ -30,7 +25,7 @@ class GridGenerator
      */
     public function generate(int $userId, int $year): ?string
     {
-        $rawData = $this->redis->checkRedisForGridData($userId, $year);
+        $rawData = $this->redisService->checkRedisForGridData($userId, $year);
         $formattedData = $this->countData($rawData, $year);
         $gridSquareSize = 16;
         $gridSquareMargin = 2;
