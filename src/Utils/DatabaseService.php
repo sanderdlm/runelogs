@@ -40,6 +40,16 @@ class DatabaseService
         return $result;
     }
 
+    public function getUsersSortedByActivity() : array
+    {
+        $con = $this->getConnection();
+        $sql = "SELECT * FROM user ORDER BY us_last_visited DESC";
+        $result = $con->query($sql)->fetchAll();
+        $this->clean($con);
+        return $result;
+    }
+
+
     public function getLogs() : array
     {
         $con = $this->getConnection();
@@ -223,6 +233,17 @@ class DatabaseService
         $sql->bindParam(':userId', $userId);
         $sql->bindParam(':userName', $userName);
         $sql->bindParam(':clanId', $clanId);
+        $sql->execute();
+        $this->clean($con);
+    }
+
+    public function updateUserActivity(int $userId)
+    {
+        $now = time();
+        $con = $this->getConnection();
+        $sql = $con->prepare("UPDATE user SET us_last_visited = :clanId WHERE us_id = :userId");
+        $sql->bindParam(':userId', $userId);
+        $sql->bindParam(':userName', $now);
         $sql->execute();
         $this->clean($con);
     }

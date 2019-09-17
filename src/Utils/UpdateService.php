@@ -52,10 +52,10 @@ class UpdateService
 
         foreach ($clans as $clan) {
             echo "#" . $clan->cl_name . "[";
-    		$clanList = $this->db->getClanMembers($clan->cl_id);
+    		$userList = $this->db->getUsersSortedByActivity();
     		
-    		$chunkedClanList = array_chunk($clanList, $this->chunkSize);
-    		foreach ($chunkedClanList as $chunkIndex => $chunk) {
+    		$chunkedUserList = array_chunk($userList, $this->chunkSize);
+    		foreach ($chunkedUserList as $chunkIndex => $chunk) {
 
 	            echo "(";
 	            $this->startTimer();

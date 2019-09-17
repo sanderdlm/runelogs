@@ -21,7 +21,7 @@ class ProfileController extends AbstractController
     private $gridGenerator;
 
     private $redisService;
-    
+
     public function __construct(
         ApiService $apiService,
         DatabaseService $databaseService,
@@ -47,6 +47,7 @@ class ProfileController extends AbstractController
             $user = $this->databaseService->findUserByName($cleanUsername);
 
             if ($user) {
+                $this->databaseService->updateUserActivity($user->us_id);
                 $year = 2019;
                 $grid = $this->gridGenerator->generate($user->us_id, $year);
                 $today = date('z');
