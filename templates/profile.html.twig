@@ -1,0 +1,103 @@
+{% extends 'base.html.twig' %}
+
+{% block content %}
+
+    {% if grid is not empty %}
+
+        <h2 class="yearHeader" data-year="{{ year }}">{{ year }}</h2>
+        <aside class="grid-container">
+            {{ grid|raw }}
+        </aside>
+
+    {% endif %}
+
+    <main class="profile">
+
+        {% if search is defined %}
+
+            {% if results is empty %}
+
+                <div class='text notification inf'>
+                    <h2>Nothing interesting found.</h2>
+                    <p>We couldn't find any results for that keyword.</p>
+                </div>
+
+            {% else %}
+
+                <ul class="results">
+                    {% for result in results %}
+                        <li class="event-item">
+                            <div class="event-header">
+                                <h2 class="event-title">{{ result.ev_title }}</h2>
+                                <span class="event-timestamp">{{ result.ev_ts|date }}</span>
+                            </div>
+                            <p class="event-details">{{ result.ev_details }}</p>
+                        </li>
+                    {% endfor %}
+                </ul>
+
+            {% endif %}
+
+        {% else %}
+
+            {% if message is defined %}
+
+                <div class='text notification {{ type }}'>
+                    <p>{{ message }}</p>
+                </div>
+
+            {% endif %}
+
+            {% if profile.logs is empty and profile.events is empty %}
+
+                <div class='text notification inf'>
+                    <h2>Nothing interesting happened.</h2>
+                    <p>Looks like we don't have any data for you on this day.</p>
+                </div>
+
+            {% else %}
+
+                <section class="table">
+                    <table>
+                        <thead>
+                        <tr>
+                            <th class="icon"</th>
+                            <th class="level">Level</th>
+                            <th>Experience</th>
+                            <th>Difference</th>
+                        </tr>
+                        </thead>
+                        <tbody class="logs">
+                        {% for index, log in profile.logs %}
+                            <tr>
+                                <td><span class="log-icon s{{ index }}"/></span></td>
+                                <td>{{ log.lg_level }}</td>
+                                <td>{{ log.lg_value|number_format(0, '.', ',')  }}</td>
+                                <td class="{{ log.difference > 0 ? 'positive' : ''}}">{{ log.difference > 0 ? '+' : ''}}{{ log.difference|number_format(0, '.', ',')  }}</td>
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </section>
+
+                <section class="events">
+                    <ul class="events">
+                        {% for event in profile.events %}
+                            <li class="event-item">
+                                <div class="event-header">
+                                    <h2 class="event-title">{{ event.ev_title }}</h2>
+                                    <span class="event-timestamp">{{ event.ev_ts|date }}</span>
+                                </div>
+                                <p class="event-details">{{ event.ev_details }}</p>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                </section>
+
+            {% endif %}
+
+        {% endif %}
+
+    </main>
+
+{% endblock %}

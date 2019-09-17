@@ -1,0 +1,109 @@
+@import "colors";
+/* Nightmode */
+
+.night-mode-toggle {
+  filter: grayscale(100%);
+  margin-right: .5rem;
+}
+
+.is-nightmode {
+  background-color: @nightmode-background;
+  color: @nightmode-font;
+
+  .night-mode-toggle {
+    filter: grayscale(0%);
+  }
+
+  h1, h2, h3, h4, h5 {
+    color: @white;
+  }
+
+  a {
+    color: @accent;
+  }
+
+  a:hover {
+    color: @accent-hover;
+  }
+
+  .home-input, .home-input-submit {
+    background-color: @nightmode-background;
+    color: @nightmode-font;
+  }
+
+  .event-item {
+    background-color: @nightmode-background;
+    color: @nightmode-font;
+  }
+
+  .event-title {
+    color: @white;
+  }
+
+  .search form input[type="text"] {
+    background-color: @nightmode-background;
+  }
+
+  .search form input[type="text"]::placeholder {
+    color: @nightmode-font;
+  }
+
+  .day {
+    fill: @nightmode-dark;
+  }
+
+  .low {
+    fill: @nightmode-grid-low;
+  }
+
+  .medium {
+    fill: @nightmode-grid-medium;
+  }
+
+  .high {
+    fill: @nightmode-grid-high;
+  }
+
+  .sweat {
+    fill: @nightmode-grid-base;
+  }
+
+  .today {
+    fill: @accent;
+  }
+
+  .select {
+    fill: @accent;
+  }
+
+  .last-visited {
+    background-color: @nightmode-grid-base;
+    padding: .5rem 1rem;
+    border-radius: 1rem;
+    color: @white;
+    text-decoration: none;
+  }
+
+  .last-visited:hover {
+    background-color: @nightmode-grid-high;
+    color: @white;
+  }
+
+  .home {
+    background-color: @nightmode-background;
+  }
+
+  svg text {
+    fill: @white;
+  }
+
+  .spinner:after {
+    border: 5px solid @white;
+    border-color: @white transparent @white transparent;
+  }
+
+  blockquote {
+    background: @nightmode-dark;
+    border-left: 10px solid @accent;
+  }
+}
