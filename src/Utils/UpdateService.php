@@ -172,7 +172,7 @@ class UpdateService
                         echo 'name changed: '.$profile->userName.' to: '.$newbie."\r\n";
                         $this->db->updateUser($profile->userId, $newbie, $clan->cl_id);
                         unset($newbie);
-                        break;
+                        continue 2;
                     }
                 }
             }
