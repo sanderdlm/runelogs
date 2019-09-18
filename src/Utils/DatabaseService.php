@@ -4,12 +4,20 @@
 namespace App\Utils;
 
 use \PDO;
+use Doctrine\DBAL\Driver\Connection;
 
 class DatabaseService
 {
-    public function __construct()
-    {
+    private $connection;
 
+    public function __construct(Connection $connection)
+    {
+        $this->connection = $connection;
+    }
+
+    public function test()
+    {
+        $this->connection->fetchAll('SELECT * from user');
     }
 
     private function getConnection(): PDO

@@ -92,4 +92,13 @@ class ProfileController extends AbstractController
             'results' => $results
         ]);
     }
+
+    /**
+     * @Route("/test", methods={"GET"})
+     */
+    public function test()
+    {
+        $users = $this->databaseService->test();
+        dump($users);
+    }
 }
