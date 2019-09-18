@@ -4,6 +4,7 @@
 namespace App\Utils;
 
 use Doctrine\DBAL\Driver\Connection;
+use Doctrine\DBAL\FetchMode;
 
 class DatabaseService
 {
@@ -12,6 +13,7 @@ class DatabaseService
     public function __construct(Connection $connection)
     {
         $this->connection = $connection;
+        $this->connection->setFetchMode(FetchMode::STANDARD_OBJECT);
     }
 
     public function getUsers() : array
