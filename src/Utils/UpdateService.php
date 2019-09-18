@@ -100,13 +100,11 @@ class UpdateService
 	                foreach ($profile->skills as $skillValue) {
 
 	                    $localSkillObject = $skillList[$skillValue->id];
-	                    dump($skillList);
-	                    dump($skillValue->id);
 
-	                    $currentLog = $this->databaseService->getCurrentLog($profile->userId, $localSkillObject->sk_id);
+	                    $currentLog = $this->databaseService->getCurrentLog($profile->userId, $localSkillObject->id);
 
 	                    if ($currentLog) {
-	                        if($currentLog->lg_value == intval($skillValue->xp)){
+	                        if($currentLog->value == intval($skillValue->xp)){
 	                            continue;
 	                        }
 	                        $log = (object)[
@@ -123,7 +121,7 @@ class UpdateService
 	                        "xp" => intval($skillValue->xp),
 	                        "level" => intval($skillValue->level),
 	                        "userId" => $profile->userId,
-	                        "skillId" => $localSkillObject->sk_id
+	                        "skillId" => $localSkillObject->id
 	                    ];
 
 	                    $logAddList[] = $newLog;
@@ -220,7 +218,7 @@ class UpdateService
             } else {
                 // Change clans
                 echo 'changed clans for user '.$newbie.'. set to '.$clan->id;
-                $this->databaseService->updateUser($newbieFromDb->us_id, $newbieFromDb->us_name, $clan->id);
+                $this->databaseService->updateUser($newbieFromDb->id, $newbieFromDb->name, $clan->id);
             }
         }
     }
