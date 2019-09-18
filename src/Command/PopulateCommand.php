@@ -17,17 +17,18 @@ class PopulateCommand extends Command
 	
     protected static $defaultName = 'app:populate';
 
-    public function __construct(ApiService $apiService, DatabaseService $databaseService)
+    public function __construct(ApiService $apiService, DatabaseService $databaseService, string $path)
     {
         $this->apiService = $apiService;
         $this->databaseService = $databaseService;
+        $this->path = $path;
 
         parent::__construct();
     }
 
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-		$clanNames = file('%kernel.project_dir%/var/clans.txt');
+		$clanNames = file($this->path.'/var/clans.txt');
 		echo "[";
 		foreach ($clanNames as $clanIndex => &$clanName) {
 			echo $clanIndex;
@@ -36,7 +37,7 @@ class PopulateCommand extends Command
 			if(!$clanObject){
 				$clanId = $this->databaseService->addClan($clanName);
 			} else {
-				$clanId = $clanObject->cl_id;
+				$clanId = $clanObject->id;
 			}
 
 			$clanMemberList = $this->apiService->getClanList($clanName);
@@ -55,7 +56,7 @@ class PopulateCommand extends Command
 				}
 
 				if($userObject->us_cl_id != $clanId){
-					$this->databaseService->updateUser($userObject->us_id, $clanId);
+					$this->databaseService->updateUser($userObject->id, $clanId);
 				}
 			}
 			echo '+';

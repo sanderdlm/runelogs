@@ -51,7 +51,7 @@ class UpdateService
         }
 
         foreach ($clans as $clan) {
-            echo "#" . $clan->cl_name . "[";
+            echo "#" . $clan->name . "[";
     		$userList = $this->databaseService->getUsersSortedByActivity();
     		
     		$chunkedUserList = array_chunk($userList, $this->chunkSize);
@@ -108,7 +108,7 @@ class UpdateService
 	                            continue;
 	                        }
 	                        $log = (object)[
-	                            "id" => $currentLog->lg_id,
+	                            "id" => $currentLog->id,
 	                            "xp" => intval($skillValue->xp),
 	                            "level" => intval($skillValue->level)
 	                        ];
@@ -170,7 +170,7 @@ class UpdateService
 
                     if (count(array_intersect($leftoverEventsHashed, $newbieEventsHashed)) > 5) {
                         echo 'name changed: '.$profile->userName.' to: '.$newbie."\r\n";
-                        $this->databaseService->updateUser($profile->userId, $newbie, $clan->cl_id);
+                        $this->databaseService->updateUser($profile->userId, $newbie, $clan->id);
                         unset($newbie);
                         continue 2;
                     }
@@ -192,8 +192,8 @@ class UpdateService
             $leftoverClanLocalCheck = $this->databaseService->findClanByName($leftoverClan);
 
             if ($leftoverClanLocalCheck) {
-                echo 'has a new clan and we have it in our db, update his clan ID ('.$leftoverClanLocalCheck->cl_id.') for user '.$profile->userName;
-                $this->databaseService->updateUser($profile->userId, $profile->userName, $leftoverClanLocalCheck->cl_id);
+                echo 'has a new clan and we have it in our db, update his clan ID ('.$leftoverClanLocalCheck->id.') for user '.$profile->userName;
+                $this->databaseService->updateUser($profile->userId, $profile->userName, $leftoverClanLocalCheck->id);
                 continue;
             }
 
@@ -214,19 +214,19 @@ class UpdateService
             if (!$newbieFromDb) {
                 // Add new user
                 echo 'added new user '.$newbie;
-                $this->databaseService->addUser($newbie, $clan->cl_id);
+                $this->databaseService->addUser($newbie, $clan->id);
             } else {
                 // Change clans
-                echo 'changed clans for user '.$newbie.'. set to '.$clan->cl_id;
-                $this->databaseService->updateUser($newbieFromDb->us_id, $newbieFromDb->us_name, $clan->cl_id);
+                echo 'changed clans for user '.$newbie.'. set to '.$clan->id;
+                $this->databaseService->updateUser($newbieFromDb->us_id, $newbieFromDb->us_name, $clan->id);
             }
         }
     }
 
     private function rosterUpdate(object $clan)
     {
-        $currentClanMembers = $this->databaseService->getClanMembers($clan->cl_id);
-        $newClanMembers = $this->apiService->getClanList($clan->cl_name);
+        $currentClanMembers = $this->databaseService->getClanMembers($clan->id);
+        $newClanMembers = $this->apiService->getClanList($clan->name);
 
         if ($newClanMembers !== null) {
             $lists = $this->compareClanLists($currentClanMembers, $newClanMembers);
@@ -267,12 +267,12 @@ class UpdateService
     {
     	$eventsHashed = [];
     	foreach ($events as $event) {
-    		$eventsHashed[] = hash('sha256', $event->title . $event->details . $event->timestamp);
+    		$eventsHashed[] = $this->hashEvent($event);
     	}
         return $eventsHashed;
     }
 
-    private function getLastLocalEventHash(int $userId)
+    private function getLastLocalEventHash(int $userId): ?string
     {
         $lastEventHash = $this->redisService->getLastEventHashFromRedis($userId);
         if ($lastEventHash !== null){
@@ -282,7 +282,7 @@ class UpdateService
         if(!$lastEventFromDB){
             return null;
         }
-        return $this->hashEvent($lastEventFromDB );
+        return $this->hashEvent($lastEventFromDB);
     }
 
     private function truncate(string $stringToTruncate): string
