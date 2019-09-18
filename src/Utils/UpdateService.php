@@ -3,24 +3,22 @@
 
 namespace App\Utils;
 
-use Predis;
-
 class UpdateService
 {
     /** @var ApiService */
-    private $api;
+    private $apiService;
 
     /** @var DatabaseService */
-    private $db;
+    private $databaseService;
 
-    /** @var Predis\Client */
-    private $redis;
+    /** @var RedisService */
+    private $redisService;
 
     /** @var float */
     private $timer;
 
     /** @var int */
-    private $chunkSize;
+    private $chunkSize = 25;
 
     /** @var array */
     private $eventFilterArray = [
@@ -34,17 +32,19 @@ class UpdateService
         'trail'
     ];
 
-    public function __construct()
-    {
-        $this->api = new ApiService();
-        $this->db = new DatabaseService();
-        $this->redis = new RedisService();
-        $this->chunkSize = 25;
+    public function __construct(
+        DatabaseService $databaseService,
+        ApiService $apiService,
+        RedisService $redisService
+    ) {
+        $this->apiService = $apiService;
+        $this->databaseService = $databaseService;
+        $this->redisService = $redisService;
     }
 
     public function update()
     {
-    	$clans = $this->db->getClans();
+    	$clans = $this->databaseService->getClans();
 
     	foreach ($clans as $clan) {
     		$this->rosterUpdate($clan);
@@ -52,14 +52,14 @@ class UpdateService
 
         foreach ($clans as $clan) {
             echo "#" . $clan->cl_name . "[";
-    		$userList = $this->db->getUsersSortedByActivity();
+    		$userList = $this->databaseService->getUsersSortedByActivity();
     		
     		$chunkedUserList = array_chunk($userList, $this->chunkSize);
     		foreach ($chunkedUserList as $chunkIndex => $chunk) {
 
 	            echo "(";
 	            $this->startTimer();
-	            $playerProfiles = $this->api->getBulkProfiles($chunk, $this->chunkSize);
+	            $playerProfiles = $this->apiService->getBulkProfiles($chunk, $this->chunkSize);
 	            echo $this->stopTimer() . "s)";
 	            $this->startTimer();
 	            $logAddList = [];
@@ -95,13 +95,13 @@ class UpdateService
 	                    $playerEventList[] = $newEvent;
 	                }
 
-	                $skillList = $this->db->getSkills();
+	                $skillList = $this->databaseService->getSkills();
 
 	                foreach ($profile->skills as $skillValue) {
 
 	                    $localSkillObject = $skillList[$skillValue->id];
 
-	                    $currentLog = $this->db->getCurrentLog($profile->userId, $localSkillObject->sk_id);
+	                    $currentLog = $this->databaseService->getCurrentLog($profile->userId, $localSkillObject->sk_id);
 
 	                    if ($currentLog) {
 	                        if($currentLog->lg_value == intval($skillValue->xp)){
@@ -128,7 +128,7 @@ class UpdateService
 	                }
 
 	                if(isset($playerEventList[0])) { // Make sure Redis has the last possible event
-	                    $this->redis->updateLastEvent($profile->userId, $this->hashEvent($playerEventList[0]));
+	                    $this->redisService->updateLastEvent($profile->userId, $this->hashEvent($playerEventList[0]));
 	                }
 
 	                echo "=";
@@ -139,11 +139,11 @@ class UpdateService
 	            echo "] (" . $this->stopTimer() . "s) -> ".$totalCount." queries (";
 	            $this->startTimer();
 
-	            $this->db->addEvents($eventAddList);
+	            $this->databaseService->addEvents($eventAddList);
 
-	            $this->db->addLogs($logAddList);
+	            $this->databaseService->addLogs($logAddList);
 
-	            $this->db->updateLogs($logUpdateList);
+	            $this->databaseService->updateLogs($logUpdateList);
 
 	            echo $this->stopTimer() . "s) \r\n";
 	        }
@@ -153,13 +153,13 @@ class UpdateService
 
     private function matchUsers(object $clan, array $list)
     {
-        $leftoverProfiles = $this->api->getBulkProfiles($list['leftovers'], 25);
-        $newbieProfiles = $this->api->getBulkActivitiesByName($list['newbies']);
+        $leftoverProfiles = $this->apiService->getBulkProfiles($list['leftovers'], 25);
+        $newbieProfiles = $this->apiService->getBulkActivitiesByName($list['newbies']);
 
         foreach ($leftoverProfiles as $profile) {
 
             if (isset($profile->error) && $profile->error == 'NO_PROFILE') {
-                $leftoverEvents = $this->db->getLastXEventsByUserId($profile->userId, 100);
+                $leftoverEvents = $this->databaseService->getLastXEventsByUserId($profile->userId, 100);
                 $leftoverEventsHashed = $this->hashArrayOfEvents($leftoverEvents);
 
                 foreach ($list['newbies'] as $newbieKey => $newbie) {
@@ -170,7 +170,7 @@ class UpdateService
 
                     if (count(array_intersect($leftoverEventsHashed, $newbieEventsHashed)) > 5) {
                         echo 'name changed: '.$profile->userName.' to: '.$newbie."\r\n";
-                        $this->db->updateUser($profile->userId, $newbie, $clan->cl_id);
+                        $this->databaseService->updateUser($profile->userId, $newbie, $clan->cl_id);
                         unset($newbie);
                         continue 2;
                     }
@@ -181,25 +181,25 @@ class UpdateService
             //clan list we just pulled from jagex, but his runemetrics is set to public so we can
             //query his details end-point and 99% of the time get his new clan (or none)
 
-            $leftoverClan = $this->api->getClanFromPlayerName($profile->userName);
+            $leftoverClan = $this->apiService->getClanFromPlayerName($profile->userName);
 
             if ($leftoverClan === null) {
                 echo 'public RM but no clan in details. probably clanless rn: '.$profile->userName;
-                $this->db->updateUser($profile->userId, $profile->userName, 0);
+                $this->databaseService->updateUser($profile->userId, $profile->userName, 0);
                 continue;
             }
 
-            $leftoverClanLocalCheck = $this->db->findClanByName($leftoverClan);
+            $leftoverClanLocalCheck = $this->databaseService->findClanByName($leftoverClan);
 
             if ($leftoverClanLocalCheck) {
                 echo 'has a new clan and we have it in our db, update his clan ID ('.$leftoverClanLocalCheck->cl_id.') for user '.$profile->userName;
-                $this->db->updateUser($profile->userId, $profile->userName, $leftoverClanLocalCheck->cl_id);
+                $this->databaseService->updateUser($profile->userId, $profile->userName, $leftoverClanLocalCheck->cl_id);
                 continue;
             }
 
-            $leftOverNewClanId = $this->db->addClan($leftoverClan); //add it
+            $leftOverNewClanId = $this->databaseService->addClan($leftoverClan); //add it
             echo 'user has a new clan ('.$leftoverClan.') which wasnt in our db so far so weve added it. user:'.$profile->userName;
-            $this->db->updateUser($profile->userId, $profile->userName, $leftOverNewClanId);
+            $this->databaseService->updateUser($profile->userId, $profile->userName, $leftOverNewClanId);
 
             echo "\r\n\ ";
         }
@@ -210,23 +210,23 @@ class UpdateService
     private function addNewbies(array $unmatchedNewbies, object $clan)
     {
     	foreach ($unmatchedNewbies as $newbie) {
-            $newbieFromDb = $this->db->findUserByName($newbie);
+            $newbieFromDb = $this->databaseService->findUserByName($newbie);
             if (!$newbieFromDb) {
                 // Add new user
                 echo 'added new user '.$newbie;
-                $this->db->addUser($newbie, $clan->cl_id);
+                $this->databaseService->addUser($newbie, $clan->cl_id);
             } else {
                 // Change clans
                 echo 'changed clans for user '.$newbie.'. set to '.$clan->cl_id;
-                $this->db->updateUser($newbieFromDb->us_id, $newbieFromDb->us_name, $clan->cl_id);
+                $this->databaseService->updateUser($newbieFromDb->us_id, $newbieFromDb->us_name, $clan->cl_id);
             }
         }
     }
 
     private function rosterUpdate(object $clan)
     {
-        $currentClanMembers = $this->db->getClanMembers($clan->cl_id);
-        $newClanMembers = $this->api->getClanList($clan->cl_name);
+        $currentClanMembers = $this->databaseService->getClanMembers($clan->cl_id);
+        $newClanMembers = $this->apiService->getClanList($clan->cl_name);
 
         if ($newClanMembers !== null) {
             $lists = $this->compareClanLists($currentClanMembers, $newClanMembers);
@@ -274,11 +274,11 @@ class UpdateService
 
     private function getLastLocalEventHash(int $userId)
     {
-        $lastEventHash = $this->redis->getLastEventHashFromRedis($userId);
+        $lastEventHash = $this->redisService->getLastEventHashFromRedis($userId);
         if ($lastEventHash !== null){
             return $lastEventHash;
         }
-        $lastEventFromDB = $this->db->getLastEventByUserId($userId);
+        $lastEventFromDB = $this->databaseService->getLastEventByUserId($userId);
         if(!$lastEventFromDB){
             return null;
         }
