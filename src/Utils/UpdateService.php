@@ -100,6 +100,8 @@ class UpdateService
 	                foreach ($profile->skills as $skillValue) {
 
 	                    $localSkillObject = $skillList[$skillValue->id];
+	                    dump($skillList);
+	                    dump($skillValue->id);
 
 	                    $currentLog = $this->databaseService->getCurrentLog($profile->userId, $localSkillObject->sk_id);
 
