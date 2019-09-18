@@ -9,12 +9,14 @@ class RedisService
 {
     private $redis = null;
 
-    /** @var DatabaseService */
-    private $db;
+    /**
+     * @var DatabaseService
+     */
+    private $databaseService;
 
-    function __construct()
+    function __construct(DatabaseService $databaseService)
     {
-    	$this->db = new DatabaseService();
+    	$this->databaseService = $databaseService;
         $this->redis = new Client();
     }
 
@@ -26,7 +28,7 @@ class RedisService
             return $yearlyData;
         }
 
-        $yearlyData = $this->db->getYearlyData($userId, $year);
+        $yearlyData = $this->databaseService->getYearlyData($userId, $year);
 
         $this->redis->hset($userId,"logs", json_encode($yearlyData['logs']));
         $this->redis->hset($userId,"events", json_encode($yearlyData['events']));
