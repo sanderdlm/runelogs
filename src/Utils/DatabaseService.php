@@ -3,7 +3,7 @@
 
 namespace App\Utils;
 
-use \PDO;
+//use \PDO;
 use Doctrine\DBAL\Driver\Connection;
 
 class DatabaseService
@@ -17,7 +17,8 @@ class DatabaseService
 
     public function test()
     {
-        $this->connection->fetchAll('SELECT * from user');
+        $sql = "SELECT * FROM user";
+        return $this->connection->query($sql)->fetchAll();
     }
 
     private function getConnection(): PDO
