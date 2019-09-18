@@ -22,7 +22,7 @@ class DatabaseService
 
     public function getUsersSortedByActivity() : array
     {
-        $sql = "SELECT * FROM user ORDER BY us_last_visited DESC";
+        $sql = "SELECT * FROM user ORDER BY last_visited DESC";
         return $this->connection->query($sql)->fetchAll();
     }
 
@@ -46,7 +46,7 @@ class DatabaseService
 
     public function getClanMembers(int $clanId) : array
     {
-        $sql = $this->connection->prepare("SELECT us_id as id, us_name as name FROM user WHERE us_cl_id = :clanId");
+        $sql = $this->connection->prepare("SELECT * FROM user WHERE clan_id = :clanId");
         $sql->bindParam(':clanId', $clanId);
         $sql->execute();
         return $sql->fetchAll();
@@ -54,7 +54,7 @@ class DatabaseService
 
     public function getClanMemberNames(int $clanId) : array
     {
-        $sql = $this->connection->prepare("SELECT us_name as name FROM user WHERE us_cl_id = :clanId");
+        $sql = $this->connection->prepare("SELECT name FROM user WHERE clan_id = :clanId");
         $sql->bindParam(':clanId', $clanId);
         $sql->execute();
         return $sql->fetchAll(PDO::FETCH_COLUMN);
@@ -63,7 +63,7 @@ class DatabaseService
     public function getCurrentLog(int $userId, int $skillId)
     {
         $dayIndex = date('Y') . date('z');
-        $sql = $this->connection->prepare("SELECT * FROM log WHERE lg_us_id = :userId AND lg_sk_id = :skill_id AND lg_day = :day");
+        $sql = $this->connection->prepare("SELECT * FROM log WHERE user_id = :userId AND skill_id = :skill_id AND day = :day");
         $sql->bindParam(':userId', $userId);
         $sql->bindParam(':skill_id', $skillId);
         $sql->bindParam(':day', $dayIndex);
@@ -103,7 +103,7 @@ class DatabaseService
     public function updateLogs(array $logUpdateList)
     {
         $this->connection->beginTransaction();
-        $sql = $this->connection->prepare("UPDATE log SET lg_value = :xp, lg_level = :level WHERE lg_id = :id");
+        $sql = $this->connection->prepare("UPDATE log SET value = :xp, level = :level WHERE id = :id");
         foreach ($logUpdateList as $log) {
             $sql->bindParam(':id', $log->id);
             $sql->bindParam(':xp', $log->xp);
@@ -115,7 +115,7 @@ class DatabaseService
 
     public function getLastXEventsByUserId(int $userId, int $limit)
     {
-        $sql = $this->connection->prepare("SELECT ev_title as title, ev_details as details, ev_ts as timestamp FROM event WHERE ev_us_id = :userId ORDER BY event.ev_id DESC LIMIT :elimit");
+        $sql = $this->connection->prepare("SELECT * FROM event WHERE user_id = :userId ORDER BY event.id DESC LIMIT :elimit");
         $sql->bindParam(':userId', $userId);
         $sql->bindParam(':elimit', $limit);
         $sql->execute();
@@ -124,7 +124,7 @@ class DatabaseService
 
     public function getLastEventByUserId(int $userId)
     {
-        $sql = $this->connection->prepare("SELECT ev_title as title, ev_details as details, ev_ts as timestamp FROM event WHERE ev_us_id = :userId ORDER BY event.ev_id DESC LIMIT 1");
+        $sql = $this->connection->prepare("SELECT * FROM event WHERE user_id = :userId ORDER BY event.id DESC LIMIT 1");
         $sql->bindParam(':userId', $userId);
         $sql->execute();
         return $sql->fetch();
@@ -132,7 +132,7 @@ class DatabaseService
 
     public function findUserByName(string $userName)
     {
-        $sql = $this->connection->prepare("SELECT * FROM user WHERE us_name = :userName");
+        $sql = $this->connection->prepare("SELECT * FROM user WHERE name = :userName");
         $sql->bindParam(':userName', $userName);
         $sql->execute();
         return $sql->fetch();
@@ -140,7 +140,7 @@ class DatabaseService
 
     public function findClanByName(string $clanName)
     {
-        $sql = $this->connection->prepare("SELECT * FROM clan WHERE cl_name = :clanName");
+        $sql = $this->connection->prepare("SELECT * FROM clan WHERE name = :clanName");
         $sql->bindParam(':clanName', $clanName);
         $sql->execute();
         return $sql->fetch();
@@ -164,7 +164,7 @@ class DatabaseService
 
     public function updateUser(int $userId, string $userName, int $clanId)
     {
-        $sql = $this->connection->prepare("UPDATE user SET us_cl_id = :clanId, us_name = :userName WHERE us_id = :userId");
+        $sql = $this->connection->prepare("UPDATE user SET clan_id = :clanId, name = :userName WHERE id = :userId");
         $sql->bindParam(':userId', $userId);
         $sql->bindParam(':userName', $userName);
         $sql->bindParam(':clanId', $clanId);
@@ -174,7 +174,7 @@ class DatabaseService
     public function updateUserActivity(int $userId)
     {
         $now = time();
-        $sql = $this->connection->prepare("UPDATE user SET us_last_visited = :clanId WHERE us_id = :userId");
+        $sql = $this->connection->prepare("UPDATE user SET last_visited = :clanId WHERE id = :userId");
         $sql->bindParam(':userId', $userId);
         $sql->bindParam(':userName', $now);
         $sql->execute();
@@ -183,7 +183,7 @@ class DatabaseService
     function search(int $userId, string $searchTerm) : array
     {
         $searchTerm = '%'.$searchTerm.'%'; //prep the search query here cus sqlite doesnt like it when u do this inline
-        $sql = $this->connection->prepare("SELECT * FROM event WHERE ev_us_id = :userId AND (ev_title LIKE :searchTerm OR ev_details LIKE :searchTerm) ORDER BY ev_ts DESC");
+        $sql = $this->connection->prepare("SELECT * FROM event WHERE user_id = :userId AND (title LIKE :searchTerm OR details LIKE :searchTerm) ORDER BY timestamp DESC");
         $sql->bindParam(':userId', $userId);
         $sql->bindParam(':searchTerm', $searchTerm);
         $sql->execute();
@@ -192,7 +192,7 @@ class DatabaseService
 
     public function getUserLogsByDay(int $userId, int $day): array
     {
-        $sql = $this->connection->prepare("SELECT * FROM log WHERE lg_us_id = :userId AND lg_day = :day");
+        $sql = $this->connection->prepare("SELECT * FROM log WHERE user_id = :userId AND day = :day");
         $sql->bindParam(':userId', $userId);
         $sql->bindParam(':day', $datekey);
         $sql->execute();
@@ -201,7 +201,7 @@ class DatabaseService
 
     public function getUserEventsBetweenTimeframe(int $userId, int $start, int $end) : array
     {
-        $sql = $this->connection->prepare("SELECT * FROM event WHERE ev_us_id = :userId AND (ev_ts >= :start AND ev_ts <= :end)");
+        $sql = $this->connection->prepare("SELECT * FROM event WHERE user_id = :userId AND (timestamp >= :start AND timestamp <= :end)");
         $sql->bindParam(':userId', $userId);
         $sql->bindParam(':start', $start);
         $sql->bindParam(':end', $end);
@@ -227,7 +227,7 @@ class DatabaseService
     {
         $start = $year.'0';
         $end = $year.'365';
-        $sql = $this->connection->prepare("SELECT * FROM log WHERE lg_us_id = :userId AND (lg_day >= :start AND lg_day <= :end)");
+        $sql = $this->connection->prepare("SELECT * FROM log WHERE user_id = :userId AND (day >= :start AND day <= :end)");
         $sql->bindParam(':userId', $userId);
         $sql->bindParam(':start', $start);
         $sql->bindParam(':end', $end);
