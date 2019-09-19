@@ -56,7 +56,7 @@ class UpdateService
         $progressBar = new ProgressBar($output, count($clans));
         $progressBar->start();
     	foreach ($clans as $clan) {
-    		$this->rosterUpdate($clan, $section);
+    		$this->rosterUpdate($clan);
             $progressBar->advance();
         }
         $progressBar->finish();
