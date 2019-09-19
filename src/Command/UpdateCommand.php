@@ -23,6 +23,6 @@ class UpdateCommand extends Command
 
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-		$this->updateService->update();
+		$this->updateService->update($output);
     }
 }

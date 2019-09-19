@@ -3,6 +3,9 @@
 
 namespace App\Utils;
 
+use Symfony\Component\Console\Helper\ProgressBar;
+use Symfony\Component\Console\Output\OutputInterface;
+
 class UpdateService
 {
     /** @var ApiService */
@@ -42,113 +45,116 @@ class UpdateService
         $this->redisService = $redisService;
     }
 
-    public function update()
+    public function update(OutputInterface $output)
     {
+        $output->writeln('<info>Runelogs update</info>');
+
     	$clans = $this->databaseService->getClans();
 
+        $section = $output->section();
+        $section->writeln('Starting the clan roster update...');
+        $progressBar = new ProgressBar($output, count($clans));
+        $progressBar->start();
     	foreach ($clans as $clan) {
-    		$this->rosterUpdate($clan);
+    		$this->rosterUpdate($clan, $section);
+            $progressBar->advance();
         }
+        $progressBar->finish();
+    	$section->clear();
 
-        foreach ($clans as $clan) {
-            echo "#" . $clan->name . "[";
-    		$userList = $this->databaseService->getUsersSortedByActivity();
-    		
-    		$chunkedUserList = array_chunk($userList, $this->chunkSize);
-    		foreach ($chunkedUserList as $chunkIndex => $chunk) {
+        $userList = $this->databaseService->getUsersSortedByActivity();
 
-	            echo "(";
-	            $this->startTimer();
-	            $playerProfiles = $this->apiService->getBulkProfiles($chunk, $this->chunkSize);
-	            echo $this->stopTimer() . "s)";
-	            $this->startTimer();
-	            $logAddList = [];
-	            $logUpdateList = [];
-	            $eventAddList = [];
+        $output->writeln('Starting the user update...');
+        $progressBar = new ProgressBar($output, count($userList));
+        $progressBar->start();
 
-	            foreach ($playerProfiles as $profile) {
+        $chunkedUserList = array_chunk($userList, $this->chunkSize);
+        foreach ($chunkedUserList as $chunkIndex => $chunk) {
 
-	                $playerEventList = [];
+            $playerProfiles = $this->apiService->getBulkProfiles($chunk, $this->chunkSize);
 
-	                if (isset($profile->error) || empty($profile->activities)) {
-	                    continue; // Move on to the next player profile
-	                }
+            $logAddList = [];
+            $logUpdateList = [];
+            $eventAddList = [];
 
-	                $lastLocalEventHash = $this->getLastLocalEventHash($profile->userId);
+            foreach ($playerProfiles as $profile) {
 
-	                foreach ($profile->activities as $activity) {
+                $playerEventList = [];
 
-	                    if ($this->isEventFiltered($activity->text)) {
-	                        continue; // Move on to the next event
-	                    }
-	                    $newEvent = (object)[
-	                        "title" => $activity->text,
-	                        "details" => $this->truncate($activity->details),
-	                        "timestamp" => strtotime($activity->date),
-	                        "userId" => $profile->userId
-	                    ];
+                if (isset($profile->error) || empty($profile->activities)) {
+                    continue; // Move on to the next player profile
+                }
 
-	                    if ($lastLocalEventHash !== null && $lastLocalEventHash === $this->hashEvent($newEvent)) {
-	                        break; // When we find a match, move on to logs
-	                    }
+                $lastLocalEventHash = $this->getLastLocalEventHash($profile->userId);
 
-	                    $playerEventList[] = $newEvent;
-	                }
+                foreach ($profile->activities as $activity) {
 
-	                $skillList = $this->databaseService->getSkills();
+                    if ($this->isEventFiltered($activity->text)) {
+                        continue; // Move on to the next event
+                    }
+                    $newEvent = (object)[
+                        "title" => $activity->text,
+                        "details" => $this->truncate($activity->details),
+                        "timestamp" => strtotime($activity->date),
+                        "userId" => $profile->userId
+                    ];
 
-	                foreach ($profile->skills as $skillValue) {
+                    if ($lastLocalEventHash !== null && $lastLocalEventHash === $this->hashEvent($newEvent)) {
+                        break; // When we find a match, move on to logs
+                    }
 
-	                    $localSkillObject = $skillList[$skillValue->id];
+                    $playerEventList[] = $newEvent;
+                }
 
-	                    $currentLog = $this->databaseService->getCurrentLog($profile->userId, $localSkillObject->id);
+                $skillList = $this->databaseService->getSkills();
 
-	                    if ($currentLog) {
-	                        if($currentLog->value == intval($skillValue->xp)){
-	                            continue;
-	                        }
-	                        $log = (object)[
-	                            "id" => $currentLog->id,
-	                            "xp" => intval($skillValue->xp),
-	                            "level" => intval($skillValue->level)
-	                        ];
-	                        $logUpdateList[] = $log;
-	                        continue;
-	                    }
+                foreach ($profile->skills as $skillValue) {
 
-	                    $newLog = (object)[
-	                        "day" => date('Y') . date('z'),
-	                        "xp" => intval($skillValue->xp),
-	                        "level" => intval($skillValue->level),
-	                        "userId" => $profile->userId,
-	                        "skillId" => $localSkillObject->id
-	                    ];
+                    $localSkillObject = $skillList[$skillValue->id];
 
-	                    $logAddList[] = $newLog;
-	                }
+                    $currentLog = $this->databaseService->getCurrentLog($profile->userId, $localSkillObject->id);
 
-	                if(isset($playerEventList[0])) { // Make sure Redis has the last possible event
-	                    $this->redisService->updateLastEvent($profile->userId, $this->hashEvent($playerEventList[0]));
-	                }
+                    if ($currentLog) {
+                        if($currentLog->value == intval($skillValue->xp)){
+                            continue;
+                        }
+                        $log = (object)[
+                            "id" => $currentLog->id,
+                            "xp" => intval($skillValue->xp),
+                            "level" => intval($skillValue->level)
+                        ];
+                        $logUpdateList[] = $log;
+                        continue;
+                    }
 
-	                echo "=";
-	                // Reverse the player's events because Jagex delivers them newest-first and we want to store them newest-last
-	                $eventAddList = array_merge($eventAddList, array_reverse($playerEventList));
-	            }
-	            $totalCount = count($eventAddList) + count($logAddList) + count($logUpdateList);
-	            echo "] (" . $this->stopTimer() . "s) -> ".$totalCount." queries (";
-	            $this->startTimer();
+                    $newLog = (object)[
+                        "day" => date('Y') . date('z'),
+                        "xp" => intval($skillValue->xp),
+                        "level" => intval($skillValue->level),
+                        "userId" => $profile->userId,
+                        "skillId" => $localSkillObject->id
+                    ];
 
-	            $this->databaseService->addEvents($eventAddList);
+                    $logAddList[] = $newLog;
+                }
 
-	            $this->databaseService->addLogs($logAddList);
+                if(isset($playerEventList[0])) { // Make sure Redis has the last possible event
+                    $this->redisService->updateLastEvent($profile->userId, $this->hashEvent($playerEventList[0]));
+                }
 
-	            $this->databaseService->updateLogs($logUpdateList);
+                // Reverse the player's events because Jagex delivers them newest-first and we want to store them newest-last
+                $eventAddList = array_merge($eventAddList, array_reverse($playerEventList));
 
-	            echo $this->stopTimer() . "s) \r\n";
-	        }
-	        echo "] \r\n";
-    	}
+                $progressBar->advance();
+            }
+
+            $this->databaseService->addEvents($eventAddList);
+
+            $this->databaseService->addLogs($logAddList);
+
+            $this->databaseService->updateLogs($logUpdateList);
+        }
+        $progressBar->finish();
     }
 
     private function matchUsers(object $clan, array $list)

@@ -109,6 +109,7 @@ class DatabaseService
 
     public function getLastXEventsByUserId(int $userId, int $limit)
     {
+        dump($limit);
         $sql = $this->connection->prepare("SELECT * FROM event WHERE user_id = :userId ORDER BY event.id DESC LIMIT :elimit");
         $sql->bindParam(':userId', $userId);
         $sql->bindParam(':elimit', $limit);
@@ -140,9 +141,9 @@ class DatabaseService
         return $sql->fetch();
     }
 
-    public function addUser(string $userName, int $clanId)
+    public function addUser(string $userName, ?int $clanId)
     {
-        $sql = $this->connection->prepare("INSERT INTO user VALUES (null, :clanId, :userName, 0)");
+        $sql = $this->connection->prepare("INSERT INTO user VALUES (null, :clanId, :userName, null)");
         $sql->bindParam(':clanId', $clanId);
         $sql->bindParam(':userName', $userName);
         $sql->execute();
@@ -175,9 +176,9 @@ class DatabaseService
     public function updateUserActivity(int $userId)
     {
         $now = time();
-        $sql = $this->connection->prepare("UPDATE user SET last_visited = :clanId WHERE id = :userId");
+        $sql = $this->connection->prepare("UPDATE user SET last_visited = :last_visited WHERE id = :userId");
         $sql->bindParam(':userId', $userId);
-        $sql->bindParam(':userName', $now);
+        $sql->bindParam(':last_visited', $now);
         $sql->execute();
     }
 

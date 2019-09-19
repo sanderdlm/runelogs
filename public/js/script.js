@@ -97,10 +97,10 @@ function printLogs(logs)
         logIconCell.appendChild(logIcon);
 
         const logLevel = document.createElement('td');
-        logLevel.appendChild(document.createTextNode(log.lg_level));
+        logLevel.appendChild(document.createTextNode(log.level));
 
         const logValue = document.createElement('td');
-        logValue.appendChild(document.createTextNode(Math.round(log.lg_value).toLocaleString()));
+        logValue.appendChild(document.createTextNode(Math.round(log.value).toLocaleString()));
 
         const logDifference = document.createElement('td');
         if (log.difference > 0) {
@@ -138,15 +138,15 @@ function printEvents(events)
         eventHeader.classList.add('event-header');
 
         const eventTitle = document.createElement('h2');
-        eventTitle.appendChild(document.createTextNode(event.ev_title));
+        eventTitle.appendChild(document.createTextNode(event.title));
         eventTitle.classList.add('event-title');
 
         const eventTimestamp = document.createElement('span');
-        eventTimestamp.appendChild(document.createTextNode(dayjs.unix(event.ev_ts).format("MMMM D, YYYY HH:mm")));
+        eventTimestamp.appendChild(document.createTextNode(dayjs.unix(event.timestamp).format("MMMM D, YYYY HH:mm")));
         eventTimestamp.classList.add('event-timestamp');
 
         const eventDetails = document.createElement('p');
-        eventDetails.appendChild(document.createTextNode(event.ev_details));
+        eventDetails.appendChild(document.createTextNode(event.details));
         eventDetails.classList.add('event-details');
 
         eventItem.appendChild(eventHeader);

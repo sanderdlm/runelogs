@@ -20,10 +20,10 @@ class DataInterface
         $logs = $this->databaseService->getUserLogsByYear($userId, $year);
         $events = $this->databaseService->getUserEventsByYear($userId, $year);
 
-        $groupedLogs = $this->databaseService->groupLogsByDate($logs);
-        $groupedLogsWithDifference = $this->databaseService->calculateDailyDifference($groupedLogs);
+        $groupedLogs = $this->groupLogsByDate($logs);
+        $groupedLogsWithDifference = $this->calculateDailyDifference($groupedLogs);
 
-        $groupedEvents = $this->databaseService->groupEventsByDate($events);
+        $groupedEvents = $this->groupEventsByDate($events);
 
         $output['logs'] = $groupedLogsWithDifference;
         $output['events'] = $groupedEvents;
@@ -35,8 +35,8 @@ class DataInterface
     {
         $groupedLogs = [];
         foreach ($logs as &$log) {
-            $log->lg_value = floatval($log->lg_value / 10);
-            $groupedLogs[$log->lg_day][] = (array)$log;
+            $log->value = floatval($log->value / 10);
+            $groupedLogs[$log->day][] = (array)$log;
         }
         ksort($groupedLogs);
         return $groupedLogs;
@@ -46,7 +46,7 @@ class DataInterface
     {
         $groupedEvents = [];
         foreach ($events as $event) {
-            $eventDayIndex = $this->databaseService->generateUniqueDayIndex($event->ev_ts);
+            $eventDayIndex = $this->generateUniqueDayIndex($event->timestamp);
             $groupedEvents[$eventDayIndex][] = (array)$event;
         }
         ksort($groupedEvents);
@@ -57,15 +57,15 @@ class DataInterface
     {
         foreach ($logsPerDay as $dayIndex => &$logsOnThatDay) {
             $previousDayIndex = $dayIndex - 1;
-            $totalsArray = $this->databaseService->createTotalsArray();
+            $totalsArray = $this->createTotalsArray();
             foreach ($logsOnThatDay as $skillIndex => &$log) {
                 if (isset($logsPerDay[$previousDayIndex]) && $logsPerDay[$previousDayIndex] !== null) {
-                    $log['difference'] = $log['lg_value'] - $logsPerDay[$previousDayIndex][$skillIndex]['lg_value'];
+                    $log['difference'] = $log['value'] - $logsPerDay[$previousDayIndex][$skillIndex]['value'];
                 } else {
                     $log['difference'] = 0;
                 }
-                $totalsArray['lg_level'] += $log['lg_level'];
-                $totalsArray['lg_value'] += $log['lg_value'];
+                $totalsArray['level'] += $log['level'];
+                $totalsArray['value'] += $log['value'];
                 $totalsArray['difference'] += $log['difference'];
             }
             $logsOnThatDay[27] = $totalsArray;
@@ -76,8 +76,8 @@ class DataInterface
     private function createTotalsArray(): array
     {
         $totals = [];
-        $totals['lg_level'] = 0;
-        $totals['lg_value'] = 0;
+        $totals['level'] = 0;
+        $totals['value'] = 0;
         $totals['difference'] = 0;
         return $totals;
     }

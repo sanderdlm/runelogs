@@ -22,8 +22,6 @@ class IndexController extends AbstractController
      */
     public function index(Request $request)
     {
-        return $this->render('maintenance.html.twig');
-
         if ($request->getMethod() === 'POST') {
             $username = $request->request->get('username');
             return $this->redirectToRoute('profile', ['username' => $this->apiService->norm($username)]);

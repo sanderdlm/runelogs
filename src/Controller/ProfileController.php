@@ -41,19 +41,20 @@ class ProfileController extends AbstractController
      */
     public function index(string $username): Response
     {
+        $year = 2019;
+        $today = date('z');
+
         if ($username !== null) {
 
             $cleanUsername = $this->apiService->norm($username);
             $user = $this->databaseService->findUserByName($cleanUsername);
 
             if ($user) {
-                $this->databaseService->updateUserActivity($user->us_id);
-                $year = 2019;
-                $grid = $this->gridGenerator->generate($user->us_id, $year);
-                $today = date('z');
-                $profile = $this->redisService->getDataFromRedis($user->us_id, $year, $today);
+                $this->databaseService->updateUserActivity($user->id);
+                $grid = $this->gridGenerator->generate($user->id, $year);
+                $profile = $this->redisService->getDataFromRedis($user->id, $year, $today);
             } else {
-                $this->databaseService->addUser($cleanUsername, 0);
+                $this->databaseService->addUser($cleanUsername, null);
             }
 
         } else {
@@ -83,7 +84,7 @@ class ProfileController extends AbstractController
         if ($user) {
             $searchTerm = $request->request->get('search');
             if ($searchTerm !== null) { //search
-                $results = $this->databaseService->search($user->us_id, $searchTerm);
+                $results = $this->databaseService->search($user->id, $searchTerm);
             }
         }
 
