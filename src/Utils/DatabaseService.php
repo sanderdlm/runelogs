@@ -148,6 +148,13 @@ class DatabaseService
         $sql->execute();
     }
 
+    public function removeUser(int $userId)
+    {
+        $sql = $this->connection->prepare("DELETE FROM user WHERE id = :userId");
+        $sql->bindParam(':userId', $userId);
+        $sql->execute();
+    }
+
     public function addClan(string $clanName): int
     {
         $sql = $this->connection->prepare("INSERT INTO clan VALUES (null, :clanName)");

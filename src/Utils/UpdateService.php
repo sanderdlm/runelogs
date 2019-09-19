@@ -160,6 +160,11 @@ class UpdateService
 
             if (isset($profile->error) && $profile->error == 'NO_PROFILE') {
                 $leftoverEvents = $this->databaseService->getLastXEventsByUserId($profile->userId, 100);
+                if (!$leftoverEvents) {
+                    //no logs in db to match with, and user doesnt exists for jagex so dead account
+                    $this->databaseService->removeUser($profile->userId);
+                    continue;
+                }
                 $leftoverEventsHashed = $this->hashArrayOfEvents($leftoverEvents);
 
                 foreach ($list['newbies'] as $newbieKey => $newbie) {
@@ -171,7 +176,7 @@ class UpdateService
                     if (count(array_intersect($leftoverEventsHashed, $newbieEventsHashed)) > 5) {
                         echo 'name changed: '.$profile->userName.' to: '.$newbie."\r\n";
                         $this->databaseService->updateUser($profile->userId, $newbie, $clan->id);
-                        unset($newbie);
+                        unset($list['newbies'][$newbieKey]);
                         continue 2;
                     }
                 }
@@ -180,25 +185,27 @@ class UpdateService
             //if the loop gets to this point, that means this leftover user is no longer in the
             //clan list we just pulled from jagex, but his runemetrics is set to public so we can
             //query his details end-point and 99% of the time get his new clan (or none)
+            //TODO: determine whether it's more efficient to just put all leftovers to clanless
+            //and wait for their next clan to update
 
             $leftoverClan = $this->apiService->getClanFromPlayerName($profile->userName);
 
             if ($leftoverClan === null) {
-                echo 'public RM but no clan in details. probably clanless rn: '.$profile->userName;
-                $this->databaseService->updateUser($profile->userId, $profile->userName, 0);
+               //account still exists but doesn't have his clan on public (or doesnt have one)
+                $this->databaseService->updateUser($profile->userId, $profile->userName, null);
                 continue;
             }
 
             $leftoverClanLocalCheck = $this->databaseService->findClanByName($leftoverClan);
 
             if ($leftoverClanLocalCheck) {
-                echo 'has a new clan and we have it in our db, update his clan ID ('.$leftoverClanLocalCheck->id.') for user '.$profile->userName;
+                //has a new clan and we have it in our db, update his clan ID
                 $this->databaseService->updateUser($profile->userId, $profile->userName, $leftoverClanLocalCheck->id);
                 continue;
             }
 
             $leftOverNewClanId = $this->databaseService->addClan($leftoverClan); //add it
-            echo 'user has a new clan ('.$leftoverClan.') which wasnt in our db so far so weve added it. user:'.$profile->userName;
+            //user has a new clan which wasn't in our db so far so we've added it.
             $this->databaseService->updateUser($profile->userId, $profile->userName, $leftOverNewClanId);
 
             echo "\r\n\ ";
@@ -213,7 +220,6 @@ class UpdateService
             $newbieFromDb = $this->databaseService->findUserByName($newbie);
             if (!$newbieFromDb) {
                 // Add new user
-                echo 'added new user '.$newbie;
                 $this->databaseService->addUser($newbie, $clan->id);
             } else {
                 // Change clans
