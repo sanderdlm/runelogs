@@ -11,6 +11,11 @@ use App\Utils\DatabaseService;
 
 class PopulateCommand extends Command
 {
+    /**
+     * @var string
+     */
+    private $path;
+    
 	private $apiService;
 
 	private $databaseService;

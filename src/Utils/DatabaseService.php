@@ -54,14 +54,6 @@ class DatabaseService
         return $sql->fetchAll();
     }
 
-    public function getClanMemberNames(int $clanId) : array
-    {
-        $sql = $this->connection->prepare("SELECT name FROM user WHERE clan_id = :clanId");
-        $sql->bindParam(':clanId', $clanId);
-        $sql->execute();
-        return $sql->fetchAll(PDO::FETCH_COLUMN);
-    }
-
     public function getCurrentLog(int $userId, int $skillId)
     {
         $dayIndex = date('Y') . date('z');
@@ -196,7 +188,7 @@ class DatabaseService
     {
         $sql = $this->connection->prepare("SELECT * FROM log WHERE user_id = :userId AND day = :day");
         $sql->bindParam(':userId', $userId);
-        $sql->bindParam(':day', $datekey);
+        $sql->bindParam(':day', $day);
         $sql->execute();
         return $sql->fetchAll();
     }
