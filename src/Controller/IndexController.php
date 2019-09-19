@@ -26,6 +26,6 @@ class IndexController extends AbstractController
             $username = $request->request->get('username');
             return $this->redirectToRoute('profile', ['username' => $this->apiService->norm($username)]);
         }
-        return $this->render('home.html.twig');
+        return $this->render('home/home.html.twig');
     }
 }

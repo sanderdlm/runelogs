@@ -61,7 +61,7 @@ class ProfileController extends AbstractController
             $user = null;
         }
 
-        return $this->render('profile.html.twig',[
+        return $this->render('profile/profile.html.twig',[
             'user' => $user,
             'year' => $year,
             'grid' => $grid,
@@ -88,7 +88,7 @@ class ProfileController extends AbstractController
             }
         }
 
-        return $this->render('profile.html.twig',[
+        return $this->render('profile/profile.html.twig',[
             'user' => $user,
             'results' => $results
         ]);

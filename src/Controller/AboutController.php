@@ -13,6 +13,6 @@ class AboutController extends AbstractController
      */
     public function about()
     {
-        return $this->render('about.html.twig');
+        return $this->render('static/about.html.twig');
     }
 }
