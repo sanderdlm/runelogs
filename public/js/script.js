@@ -30,6 +30,7 @@ function getYear() {
 
 function updateProfile(data)
 {
+    console.table(data);
     removeSpinnerIfPresent();
 
     if (data.logs  === null && data.events.length  === 0) {
@@ -88,7 +89,6 @@ function printLogs(logs)
 
     /* Display the experience table rows */
     logs.forEach(function (log, index) {
-
         const logRow = document.createElement('tr');
 
         const logIconCell = document.createElement('td');
