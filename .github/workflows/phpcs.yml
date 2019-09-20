@@ -9,4 +9,4 @@ jobs:
     - name: PHP-CS-Fixer
       uses: docker://oskarstark/phpcs-ga
       with:
-        args: src/
+        args: --standard=PSR2 src/
