@@ -13,7 +13,7 @@ function css() {
 }
 
 function js() {
-    return src('public/js/*.js', { sourcemaps: true })
+    return src(['public/js/lib/*.js', 'public/js/*.js'], { sourcemaps: true })
         .pipe(concat('app.js'))
         .pipe(minify({
             ext:{

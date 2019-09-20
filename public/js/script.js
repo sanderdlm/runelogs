@@ -323,7 +323,18 @@ function load(startDay, endDay) {
     xhr.onreadystatechange = function () {
         if (xhr.readyState === 4 && xhr.status === 200) {
             updateProfile(JSON.parse(xhr.responseText));
+            sortProfileTable();
         }
+    }
+}
+
+function sortProfileTable()
+{
+    const profileTable = document.querySelector('.table table');
+    if (profileTable !== null) {
+        new Tablesort(profileTable, {
+            descending: true
+        });
     }
 }
 
@@ -338,3 +349,4 @@ if(grid){
 getUserId();
 getYear();
 turnOnNightmodeOnPageLoad();
+sortProfileTable();
