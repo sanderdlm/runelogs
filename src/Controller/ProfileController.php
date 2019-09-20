@@ -99,8 +99,6 @@ class ProfileController extends AbstractController
      */
     public function test()
     {
-        //$users = $this->databaseService->test();
-        $details = $this->apiService->getDetails('isobho');
-        dump($details);
+        
     }
 }

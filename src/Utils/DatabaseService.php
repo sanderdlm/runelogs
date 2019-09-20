@@ -216,12 +216,10 @@ class DatabaseService
         $this->connection->commit();
     }
 
-    public function getLastXEventsByUserId(int $userId, int $limit)
+    public function getRecentEventHistoryByUserId(int $userId)
     {
-        dump($limit);
-        $sql = $this->connection->prepare("SELECT * FROM event WHERE user_id = :userId ORDER BY event.id DESC LIMIT :elimit");
+        $sql = $this->connection->prepare("SELECT * FROM `event` WHERE user_id = :userId ORDER BY event.id DESC LIMIT 100");
         $sql->bindParam(':userId', $userId);
-        $sql->bindParam(':elimit', $limit);
         $sql->execute();
         return $sql->fetchAll();
     }

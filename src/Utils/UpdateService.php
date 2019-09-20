@@ -165,7 +165,7 @@ class UpdateService
         foreach ($leftoverProfiles as $profile) {
 
             if (isset($profile->error) && $profile->error == 'NO_PROFILE') {
-                $leftoverEvents = $this->databaseService->getLastXEventsByUserId($profile->userId, 100);
+                $leftoverEvents = $this->databaseService->getRecentEventHistoryByUserId($profile->userId);
                 if (!$leftoverEvents) {
                     //no logs in db to match with, and user doesnt exists for jagex so dead account
                     $this->databaseService->removeUser($profile->userId);
