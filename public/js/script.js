@@ -30,7 +30,7 @@ function getYear() {
 
 function updateProfile(data)
 {
-    console.table(data);
+    console.log(data);
     removeSpinnerIfPresent();
 
     if (data.logs  === null && data.events.length  === 0) {
