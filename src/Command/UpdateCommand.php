@@ -1,6 +1,5 @@
 <?php
 
-
 namespace App\Command;
 
 use Symfony\Component\Console\Command\Command;
@@ -23,6 +22,6 @@ class UpdateCommand extends Command
 
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-		$this->updateService->update($output);
+        $this->updateService->update($output);
     }
 }

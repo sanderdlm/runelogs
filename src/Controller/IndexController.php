@@ -1,6 +1,5 @@
 <?php
 
-
 namespace App\Controller;
 
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -11,7 +10,7 @@ use App\Utils\ApiService;
 class IndexController extends AbstractController
 {
     private $apiService;
-    
+
     public function __construct(ApiService $apiService)
     {
         $this->apiService = $apiService;

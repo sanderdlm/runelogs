@@ -1,6 +1,5 @@
 <?php
 
-
 namespace App\Controller;
 
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -11,8 +10,8 @@ use App\Utils\RedisService;
 
 class ApiController extends AbstractController
 {
-	private $redisService;
-	
+    private $redisService;
+
     public function __construct(RedisService $redisService)
     {
         $this->redisService = $redisService;
@@ -23,10 +22,10 @@ class ApiController extends AbstractController
      */
     public function index(Request $request)
     {
-    	$params = $request->getContent();
-    	$p = json_decode($params);
+        $params = $request->getContent();
+        $p = json_decode($params);
 
-	    $output = $this->redisService->getDataFromRedis($p->userId, $p->year, $p->startDay, $p->endDay);
-	    return new JsonResponse($output);
+        $output = $this->redisService->getDataFromRedis($p->userId, $p->year, $p->startDay, $p->endDay);
+        return new JsonResponse($output);
     }
 }

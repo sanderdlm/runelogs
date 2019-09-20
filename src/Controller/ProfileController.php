@@ -1,6 +1,5 @@
 <?php
 
-
 namespace App\Controller;
 
 use App\Utils\DatabaseService;
@@ -45,7 +44,6 @@ class ProfileController extends AbstractController
         $today = date('z');
 
         if ($username !== null) {
-
             $cleanUsername = $this->apiService->norm($username);
             $user = $this->databaseService->findUserByName($cleanUsername);
 
@@ -56,12 +54,11 @@ class ProfileController extends AbstractController
             } else {
                 $this->databaseService->addUser($cleanUsername, null);
             }
-
         } else {
             $user = null;
         }
 
-        return $this->render('profile/profile.html.twig',[
+        return $this->render('profile/profile.html.twig', [
             'user' => $user,
             'year' => $year,
             'grid' => $grid,
@@ -88,17 +85,9 @@ class ProfileController extends AbstractController
             }
         }
 
-        return $this->render('profile/profile.html.twig',[
+        return $this->render('profile/profile.html.twig', [
             'user' => $user,
             'results' => $results
         ]);
-    }
-
-    /**
-     * @Route("/test", methods={"GET"})
-     */
-    public function test()
-    {
-
     }
 }

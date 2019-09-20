@@ -16,10 +16,10 @@ class PopulateCommand extends Command
      */
     private $path;
 
-	private $apiService;
+    private $apiService;
 
-	private $databaseService;
-	
+    private $databaseService;
+
     protected static $defaultName = 'app:populate';
 
     public function __construct(ApiService $apiService, DatabaseService $databaseService, string $path)
@@ -33,39 +33,38 @@ class PopulateCommand extends Command
 
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-		$clanNames = file($this->path.'/var/clans.txt');
-		echo "[";
-		foreach ($clanNames as $clanIndex => &$clanName) {
-			echo $clanIndex;
-			$clanName = str_replace(' ', '+', strtolower(trim($clanName)));
-			$clanObject = $this->databaseService->findClanByName($clanName);
-			if(!$clanObject){
-				$clanId = $this->databaseService->addClan($clanName);
-			} else {
-				$clanId = $clanObject->id;
-			}
+        $clanNames = file($this->path.'/var/clans.txt');
+        echo "[";
+        foreach ($clanNames as $clanIndex => &$clanName) {
+            echo $clanIndex;
+            $clanName = str_replace(' ', '+', strtolower(trim($clanName)));
+            $clanObject = $this->databaseService->findClanByName($clanName);
+            if (!$clanObject) {
+                $clanId = $this->databaseService->addClan($clanName);
+            } else {
+                $clanId = $clanObject->id;
+            }
+            $clanMemberList = $this->apiService->getClanList($clanName);
 
-			$clanMemberList = $this->apiService->getClanList($clanName);
+            if ($clanMemberList == null) {
+                continue; //move next
+            }
 
-			if($clanMemberList == null){
-				continue; //move next
-			}
+            foreach ($clanMemberList as &$clanMember) {
 
-			foreach ($clanMemberList as &$clanMember) {
+                $userObject = $this->databaseService->findUserByName($clanMember);
 
-				$userObject = $this->databaseService->findUserByName($clanMember);
+                if (!$userObject) {
+                    $this->databaseService->addUser($clanMember, $clanId);
+                    continue;
+                }
 
-				if(!$userObject){
-			        $this->databaseService->addUser($clanMember, $clanId);
-			        continue;
-				}
-
-				if($userObject->us_cl_id != $clanId){
-					$this->databaseService->updateUser($userObject->id, $clanId);
-				}
-			}
-			echo '+';
-		}
-		echo "]";
+                if ($userObject->us_cl_id != $clanId) {
+                    $this->databaseService->updateUser($userObject->id, $clanId);
+                }
+            }
+            echo '+';
+        }
+        echo "]";
     }
 }
