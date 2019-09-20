@@ -226,7 +226,9 @@ class DatabaseService
 
     public function getRecentEventHistoryByUserId(int $userId)
     {
-        $sql = $this->connection->prepare("SELECT * FROM `event` WHERE user_id = :userId ORDER BY event.id DESC LIMIT 100");
+        $sql = $this->connection->prepare(
+            "SELECT * FROM `event` WHERE user_id = :userId ORDER BY event.id DESC LIMIT 100"
+        );
         $sql->bindParam(':userId', $userId);
         $sql->execute();
         return $sql->fetchAll();
@@ -244,7 +246,9 @@ class DatabaseService
     {
         $searchTerm = '%'.$searchTerm.'%'; //prep the search query here cus sqlite doesnt like it when u do this inline
         $sql = $this->connection->prepare(
-            "SELECT * FROM event WHERE user_id = :userId AND (title LIKE :searchTerm OR details LIKE :searchTerm) ORDER BY timestamp DESC"
+            "SELECT * FROM event WHERE user_id = :userId
+            AND (title LIKE :searchTerm OR details LIKE :searchTerm)
+            ORDER BY timestamp DESC"
         );
         $sql->bindParam(':userId', $userId);
         $sql->bindParam(':searchTerm', $searchTerm);

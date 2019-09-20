@@ -67,8 +67,8 @@ class ApiService
             .'m=website-data/playerDetails.ws?membership=true&names=["'
             .$this->norm($playerName)
             .'"]&callback=angular.callbacks._0',
-             true
-         )[0];
+            true
+        )[0];
     }
 
     public function getAvatar(string $playerName): void
@@ -82,31 +82,36 @@ class ApiService
 
         $requests = function (array $listOfUsers) {
             foreach ($listOfUsers as $user) {
-                yield new Request('GET', $this->baseRunemetricsUrl.'profile/profile?user='.$this->norm($user->name).'&activities=20');
+                yield new Request('GET',
+                    $this->baseRunemetricsUrl
+                    .'profile/profile?user='
+                    .$this->norm($user->name)
+                    .'&activities=20'
+                );
             }
         };
 
         $pool = new Pool($this->client, $requests($listOfUsers),
             [
-            'concurrency' => $chunkSize,
-            'fulfilled' => function ($response, $index) use ($listOfUsers, &$output) {
-                $outputObject = (object)[];
-                $outputObject->index = $index;
-                $outputObject->userId = $listOfUsers[$index]->id;
-                $outputObject->userName = $listOfUsers[$index]->name;
+                'concurrency' => $chunkSize,
+                'fulfilled' => function ($response, $index) use ($listOfUsers, &$output) {
+                    $outputObject = (object)[];
+                    $outputObject->index = $index;
+                    $outputObject->userId = $listOfUsers[$index]->id;
+                    $outputObject->userName = $listOfUsers[$index]->name;
 
-                if ($response->getStatusCode() == 200) {
-                    $profile = json_decode($response->getBody()->getContents());
-                    if(!isset($profile->error)){
-                        $outputObject->activities = $profile->activities;
-                        $outputObject->skills = $profile->skillvalues;
-                    } else {
-                        $outputObject->error = $profile->error;
+                    if ($response->getStatusCode() == 200) {
+                        $profile = json_decode($response->getBody()->getContents());
+                        if (!isset($profile->error)) {
+                            $outputObject->activities = $profile->activities;
+                            $outputObject->skills = $profile->skillvalues;
+                        } else {
+                            $outputObject->error = $profile->error;
+                        }
                     }
+                    $output[] = $outputObject;
                 }
-                $output[] = $outputObject;
-            }
-        ]);
+            ]);
 
         $promise = $pool->promise();
         $promise->wait();
@@ -118,10 +123,11 @@ class ApiService
     {
         $output = [];
         $listOfNames = array_values($listOfNames);
-        $requests = function (array $listOfNames)
-        {
+        $requests = function (array $listOfNames) {
             foreach ($listOfNames as $name) {
-                yield new Request('GET', $this->baseRunemetricsUrl.'profile/profile?user='.$this->norm($name).'&activities=20');
+                yield new Request('GET',
+                    $this->baseRunemetricsUrl.'profile/profile?user='.$this->norm($name).'&activities=20'
+                );
             }
         };
         $pool = new Pool($this->client, $requests($listOfNames), [
@@ -132,7 +138,6 @@ class ApiService
                 $outputObject->userName = $listOfNames[$index];
 
                 if ($response->getStatusCode() == 200) {
-
                     $profile = json_decode($response->getBody()->getContents());
                     if (!isset($profile->error)) {
                         $parsedActivities = [];
@@ -159,7 +164,8 @@ class ApiService
 
     public function getClanList(string $clanName)
     {
-        if (($handle = fopen($this->baseLegacyUrl.'m=clan-hiscores/members_lite.ws?clanName='.$this->norm($clanName), "r")) !== false) {
+        $clanUrl = $this->baseLegacyUrl.'m=clan-hiscores/members_lite.ws?clanName=';
+        if (($handle = fopen($clanUrl.$this->norm($clanName), "r")) !== false) {
             $index = 0;
             $clanList = [];
             while (($row = fgetcsv($handle, ",")) !== false) {
@@ -185,7 +191,7 @@ class ApiService
         }
     }
 
-    function getClanFromPlayerName(string $playerName): ?string
+    public function getClanFromPlayerName(string $playerName): ?string
     {
         $playerDetails = $this->getDetails($playerName);
         if (isset($playerDetails->clan) && $playerDetails->clan != null) {

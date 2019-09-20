@@ -141,7 +141,10 @@ class UpdateService
                     );
                 }
 
-                // Reverse the player's events because Jagex delivers them newest-first and we want to store them newest-last
+                /*
+                 * Reverse the player's events because Jagex delivers
+                 * them newest-first and we want to store them newest-last
+                 */
                 $eventAddList = array_merge($eventAddList, array_reverse($playerEventList));
 
                 $progressBar->advance();
@@ -162,7 +165,6 @@ class UpdateService
         $newbieProfiles = $this->apiService->getBulkActivitiesByName($list['newbies']);
 
         foreach ($leftoverProfiles as $profile) {
-
             if (isset($profile->error) && $profile->error == 'NO_PROFILE') {
                 $leftoverEvents = $this->databaseService->getRecentEventHistoryByUserId($profile->userId);
                 if (!$leftoverEvents) {
