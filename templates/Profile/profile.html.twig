@@ -29,7 +29,7 @@
                         <li class="event-item">
                             <div class="event-header">
                                 <h2 class="event-title">{{ result.title }}</h2>
-                                <span class="event-timestamp">{{ result.ts|date }}</span>
+                                <span class="event-timestamp">{{ result.timestamp|date }}</span>
                             </div>
                             <p class="event-details">{{ result.details }}</p>
                         </li>
@@ -70,7 +70,7 @@
                         <tbody class="logs">
                         {% for index, log in profile.logs %}
                             <tr>
-                                <td><span class="log-icon s{{ index }}"/></span></td>
+                                <td><span class="log-icon s{{ index }}"></span></td>
                                 <td>{{ log.level }}</td>
                                 <td>{{ log.value|number_format(0, '.', ',')  }}</td>
                                 <td class="{{ log.difference > 0 ? 'positive' : ''}}">{{ log.difference > 0 ? '+' : ''}}{{ log.difference|number_format(0, '.', ',')  }}</td>
@@ -86,7 +86,7 @@
                             <li class="event-item">
                                 <div class="event-header">
                                     <h2 class="event-title">{{ event.title }}</h2>
-                                    <span class="event-timestamp">{{ event.ts|date }}</span>
+                                    <span class="event-timestamp">{{ event.timestamp|date }}</span>
                                 </div>
                                 <p class="event-details">{{ event.details }}</p>
                             </li>
