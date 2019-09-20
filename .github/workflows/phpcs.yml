@@ -8,3 +8,5 @@ jobs:
     - uses: actions/checkout@master
     - name: PHP-CS-Fixer
       uses: docker://oskarstark/phpcs-ga
+      with:
+        args: src/
