@@ -82,7 +82,8 @@ class ApiService
 
         $requests = function (array $listOfUsers) {
             foreach ($listOfUsers as $user) {
-                yield new Request('GET',
+                yield new Request(
+                    'GET',
                     $this->baseRunemetricsUrl
                     .'profile/profile?user='
                     .$this->norm($user->name)
@@ -91,7 +92,8 @@ class ApiService
             }
         };
 
-        $pool = new Pool($this->client, $requests($listOfUsers),
+        $pool = new Pool(
+            $this->client, $requests($listOfUsers),
             [
                 'concurrency' => $chunkSize,
                 'fulfilled' => function ($response, $index) use ($listOfUsers, &$output) {
@@ -125,37 +127,40 @@ class ApiService
         $listOfNames = array_values($listOfNames);
         $requests = function (array $listOfNames) {
             foreach ($listOfNames as $name) {
-                yield new Request('GET',
+                yield new Request(
+                    'GET',
                     $this->baseRunemetricsUrl.'profile/profile?user='.$this->norm($name).'&activities=20'
                 );
             }
         };
-        $pool = new Pool($this->client, $requests($listOfNames), [
-            'concurrency' => 25,
-            'fulfilled' => function ($response, $index) use ($listOfNames, &$output)
-            {
-                $outputObject = (object)[];
-                $outputObject->userName = $listOfNames[$index];
+        $pool = new Pool(
+            $this->client, $requests($listOfNames),
+            [
+                'concurrency' => 25,
+                'fulfilled' => function ($response, $index) use ($listOfNames, &$output)
+                {
+                    $outputObject = (object)[];
+                    $outputObject->userName = $listOfNames[$index];
 
-                if ($response->getStatusCode() == 200) {
-                    $profile = json_decode($response->getBody()->getContents());
-                    if (!isset($profile->error)) {
-                        $parsedActivities = [];
-                        foreach ($profile->activities as $activity) {
-                            $parsedActivity = (object)[];
-                            $parsedActivity->title = $activity->text;
-                            $parsedActivity->details = $activity->details;
-                            $parsedActivity->timestamp = strtotime($activity->date);
-                            $parsedActivities[] = $parsedActivity;
+                    if ($response->getStatusCode() == 200) {
+                        $profile = json_decode($response->getBody()->getContents());
+                        if (!isset($profile->error)) {
+                            $parsedActivities = [];
+                            foreach ($profile->activities as $activity) {
+                                $parsedActivity = (object)[];
+                                $parsedActivity->title = $activity->text;
+                                $parsedActivity->details = $activity->details;
+                                $parsedActivity->timestamp = strtotime($activity->date);
+                                $parsedActivities[] = $parsedActivity;
+                            }
+                            $outputObject->activities = $parsedActivities;
+                        } else {
+                            $outputObject->error = $profile->error;
                         }
-                        $outputObject->activities = $parsedActivities;
-                    } else {
-                        $outputObject->error = $profile->error;
                     }
+                    $output[$index] = $outputObject;
                 }
-                $output[$index] = $outputObject;
-            }
-        ]);
+            ]);
 
         $promise = $pool->promise();
         $promise->wait();
