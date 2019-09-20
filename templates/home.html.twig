@@ -1,0 +1,19 @@
+{% extends 'base.html.twig' %}
+
+{% block content %}
+<main class="home">
+    <section class='text'>
+        <h1>Record your Runescape journey</h1>
+        <p>Runelogs is a minimal, open-source Runescape tracker.</p>
+        <p>To get started, enter a player name:</p>
+        <form action="/" method="post" class='home-form'><input type="text" class="home-input" name="username" aria-label="player-name" placeholder="..." /><input type="submit" class="home-input-submit" value="»"/></form>
+        <p>or try one of these</p>
+        <div class="freq">
+            <a class="last-visited" href="/profile/bear+boye">Mitra</a>
+            <a class="last-visited" href="/profile/deathsnail42">Deathsnail42</a>
+            <a class="last-visited" href="/profile/danie">Danie</a>
+        </div>
+        <p>Questions? Check out our <a href="/about">about</a> page.</p>
+    </section>
+</main>
+{% endblock %}

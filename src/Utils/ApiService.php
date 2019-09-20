@@ -1,6 +1,5 @@
 <?php
 
-
 namespace App\Utils;
 
 use GuzzleHttp\Exception\RequestException;
@@ -16,7 +15,7 @@ class ApiService
 
     private $baseRunemetricsUrl = 'https://apps.runescape.com/runemetrics/';
 
-    function __construct()
+    public function __construct()
     {
         $this->client =  new Client([
             'http_errors' => false,
@@ -44,25 +43,35 @@ class ApiService
                     return $content;
                 }
             } else {
-                return false;
+                return null;
             }
-
         } catch (RequestException $e) {
             //  To do: log the Exception thrown
         }
     }
 
-    public function getProfile($playerName)
+    public function getProfile(string $playerName): ?object
     {
-        return $this->getJson($this->baseRunemetricsUrl.'profile/profile?user='.$this->norm($playerName).'&activities=20');
+        return $this->getJson(
+            $this->baseRunemetricsUrl
+            .'profile/profile?user='
+            .$this->norm($playerName)
+            .'&activities=20'
+        );
     }
 
-    public function getDetails($playerName)
+    public function getDetails(string $playerName): ?object
     {
-        return $this->getJson($this->baseLegacyUrl.'m=website-data/playerDetails.ws?membership=true&names=["'.$this->norm($playerName).'"]&callback=angular.callbacks._0', true)[0];
+        return $this->getJson(
+            $this->baseLegacyUrl
+            .'m=website-data/playerDetails.ws?membership=true&names=["'
+            .$this->norm($playerName)
+            .'"]&callback=angular.callbacks._0',
+             true
+         )[0];
     }
 
-    public function getAvatar($playerName)
+    public function getAvatar(string $playerName): void
     {
         return $this->baseLegacyUrl.'m=avatar-rs/'.$this->norm($playerName).'/chat.png';
     }
@@ -71,24 +80,22 @@ class ApiService
     {
         $output = [];
 
-        $requests = function (array $listOfUsers)
-        {
+        $requests = function (array $listOfUsers) {
             foreach ($listOfUsers as $user) {
                 yield new Request('GET', $this->baseRunemetricsUrl.'profile/profile?user='.$this->norm($user->name).'&activities=20');
             }
         };
 
-        $pool = new Pool($this->client, $requests($listOfUsers), [
+        $pool = new Pool($this->client, $requests($listOfUsers),
+            [
             'concurrency' => $chunkSize,
-            'fulfilled' => function ($response, $index) use ($listOfUsers, &$output)
-            {
+            'fulfilled' => function ($response, $index) use ($listOfUsers, &$output) {
                 $outputObject = (object)[];
                 $outputObject->index = $index;
                 $outputObject->userId = $listOfUsers[$index]->id;
                 $outputObject->userName = $listOfUsers[$index]->name;
 
                 if ($response->getStatusCode() == 200) {
-
                     $profile = json_decode($response->getBody()->getContents());
                     if(!isset($profile->error)){
                         $outputObject->activities = $profile->activities;
@@ -97,7 +104,6 @@ class ApiService
                         $outputObject->error = $profile->error;
                     }
                 }
-
                 $output[] = $outputObject;
             }
         ]);
@@ -128,7 +134,7 @@ class ApiService
                 if ($response->getStatusCode() == 200) {
 
                     $profile = json_decode($response->getBody()->getContents());
-                    if(!isset($profile->error)){
+                    if (!isset($profile->error)) {
                         $parsedActivities = [];
                         foreach ($profile->activities as $activity) {
                             $parsedActivity = (object)[];
@@ -142,7 +148,6 @@ class ApiService
                         $outputObject->error = $profile->error;
                     }
                 }
-
                 $output[$index] = $outputObject;
             }
         ]);
@@ -165,7 +170,7 @@ class ApiService
                  * the page and breaks on the HTML doctype. If someone can
                  * replace this with a proper 302 HTTP status code fix, please do.
                  */
-                if($row[0] == '<!doctype html>'){
+                if ($row[0] == '<!doctype html>') {
                     return null;
                 }
                 if ($index > 0) {

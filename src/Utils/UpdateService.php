@@ -49,18 +49,18 @@ class UpdateService
     {
         $output->writeln('<info>Runelogs update</info>');
 
-    	$clans = $this->databaseService->getClans();
+        $clans = $this->databaseService->getClans();
 
         $section = $output->section();
         $section->writeln('Starting the clan roster update...');
         $progressBar = new ProgressBar($output, count($clans));
         $progressBar->start();
-    	foreach ($clans as $clan) {
-    		$this->rosterUpdate($clan);
+        foreach ($clans as $clan) {
+            $this->rosterUpdate($clan);
             $progressBar->advance();
         }
         $progressBar->finish();
-    	$section->clear();
+        $section->clear();
 
         $userList = $this->databaseService->getUsersSortedByActivity();
 
@@ -70,7 +70,6 @@ class UpdateService
 
         $chunkedUserList = array_chunk($userList, $this->chunkSize);
         foreach ($chunkedUserList as $chunkIndex => $chunk) {
-
             $playerProfiles = $this->apiService->getBulkProfiles($chunk, $this->chunkSize);
 
             $logAddList = [];
@@ -78,7 +77,6 @@ class UpdateService
             $eventAddList = [];
 
             foreach ($playerProfiles as $profile) {
-
                 $playerEventList = [];
 
                 if (isset($profile->error) || empty($profile->activities)) {
@@ -88,7 +86,6 @@ class UpdateService
                 $lastLocalEventHash = $this->getLastLocalEventHash($profile->userId);
 
                 foreach ($profile->activities as $activity) {
-
                     if ($this->isEventFiltered($activity->text)) {
                         continue; // Move on to the next event
                     }
@@ -109,13 +106,12 @@ class UpdateService
                 $skillList = $this->databaseService->getSkills();
 
                 foreach ($profile->skills as $skillValue) {
-
                     $localSkillObject = $skillList[$skillValue->id];
 
                     $currentLog = $this->databaseService->getCurrentLog($profile->userId, $localSkillObject->id);
 
                     if ($currentLog) {
-                        if($currentLog->value == intval($skillValue->xp)){
+                        if ($currentLog->value == intval($skillValue->xp)) {
                             continue;
                         }
                         $log = (object)[
@@ -138,8 +134,11 @@ class UpdateService
                     $logAddList[] = $newLog;
                 }
 
-                if(isset($playerEventList[0])) { // Make sure Redis has the last possible event
-                    $this->redisService->updateLastEvent($profile->userId, $this->hashEvent($playerEventList[0]));
+                if (isset($playerEventList[0])) { // Make sure Redis has the last possible event
+                    $this->redisService->updateLastEvent(
+                        $profile->userId,
+                        $this->hashEvent($playerEventList[0])
+                    );
                 }
 
                 // Reverse the player's events because Jagex delivers them newest-first and we want to store them newest-last
@@ -222,7 +221,7 @@ class UpdateService
 
     private function addNewbies(array $unmatchedNewbies, object $clan)
     {
-    	foreach ($unmatchedNewbies as $newbie) {
+        foreach ($unmatchedNewbies as $newbie) {
             $newbieFromDb = $this->databaseService->findUserByName($newbie);
             if (!$newbieFromDb) {
                 // Add new user
@@ -277,21 +276,21 @@ class UpdateService
 
     private function hashArrayOfEvents(array $events): array
     {
-    	$eventsHashed = [];
-    	foreach ($events as $event) {
-    		$eventsHashed[] = $this->hashEvent($event);
-    	}
+        $eventsHashed = [];
+        foreach ($events as $event) {
+            $eventsHashed[] = $this->hashEvent($event);
+        }
         return $eventsHashed;
     }
 
     private function getLastLocalEventHash(int $userId): ?string
     {
         $lastEventHash = $this->redisService->getLastEventHashFromRedis($userId);
-        if ($lastEventHash !== null){
+        if ($lastEventHash !== null) {
             return $lastEventHash;
         }
         $lastEventFromDB = $this->databaseService->getLastEventByUserId($userId);
-        if(!$lastEventFromDB){
+        if (!$lastEventFromDB) {
             return null;
         }
         return $this->hashEvent($lastEventFromDB);

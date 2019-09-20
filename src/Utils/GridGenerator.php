@@ -1,12 +1,11 @@
 <?php
 
-
 namespace App\Utils;
 
 class GridGenerator
 {
     private $redisService;
-    
+
     private $fillArray = array(
         500 => "sweat",
         250 => "high",
@@ -45,7 +44,7 @@ class GridGenerator
             $fill = $this->getFillValue($total);
             if (intval(date('z')) === $dayKey) {
                 $fill .= ' today';
-            } 
+            }
             $grid .= "<rect "
                     . "class='day ".$fill."'"
                     . "width='".$gridSquareSize."'"

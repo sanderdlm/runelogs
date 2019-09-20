@@ -78,7 +78,9 @@ class DatabaseService
 
     public function updateUser(int $userId, string $userName, ?int $clanId)
     {
-        $sql = $this->connection->prepare("UPDATE user SET clan_id = :clanId, name = :userName WHERE id = :userId");
+        $sql = $this->connection->prepare(
+            "UPDATE user SET clan_id = :clanId, name = :userName WHERE id = :userId"
+        );
         $sql->bindParam(':userId', $userId);
         $sql->bindParam(':userName', $userName);
         $sql->bindParam(':clanId', $clanId);
@@ -141,7 +143,9 @@ class DatabaseService
     public function getCurrentLog(int $userId, int $skillId)
     {
         $dayIndex = date('Y') . date('z');
-        $sql = $this->connection->prepare("SELECT * FROM log WHERE user_id = :userId AND skill_id = :skill_id AND day = :day");
+        $sql = $this->connection->prepare(
+            "SELECT * FROM log WHERE user_id = :userId AND skill_id = :skill_id AND day = :day"
+        );
         $sql->bindParam(':userId', $userId);
         $sql->bindParam(':skill_id', $skillId);
         $sql->bindParam(':day', $dayIndex);
@@ -181,7 +185,9 @@ class DatabaseService
     {
         $start = $year.'0';
         $end = $year.'365';
-        $sql = $this->connection->prepare("SELECT * FROM log WHERE user_id = :userId AND (day >= :start AND day <= :end)");
+        $sql = $this->connection->prepare(
+            "SELECT * FROM log WHERE user_id = :userId AND (day >= :start AND day <= :end)"
+        );
         $sql->bindParam(':userId', $userId);
         $sql->bindParam(':start', $start);
         $sql->bindParam(':end', $end);
@@ -205,7 +211,9 @@ class DatabaseService
     public function addEvents(array $eventAddList)
     {
         $this->connection->beginTransaction();
-        $sql = $this->connection->prepare("INSERT INTO event VALUES (null, :userId, :eventTitle, :eventDetails, :eventTimestamp)");
+        $sql = $this->connection->prepare(
+            "INSERT INTO event VALUES (null, :userId, :eventTitle, :eventDetails, :eventTimestamp)"
+        );
         foreach ($eventAddList as $event) {
             $sql->bindParam(':userId', $event->userId);
             $sql->bindParam(':eventTitle', $event->title);
@@ -232,10 +240,12 @@ class DatabaseService
         return $sql->fetch();
     }
 
-    function search(int $userId, string $searchTerm) : array
+    public function search(int $userId, string $searchTerm) : array
     {
         $searchTerm = '%'.$searchTerm.'%'; //prep the search query here cus sqlite doesnt like it when u do this inline
-        $sql = $this->connection->prepare("SELECT * FROM event WHERE user_id = :userId AND (title LIKE :searchTerm OR details LIKE :searchTerm) ORDER BY timestamp DESC");
+        $sql = $this->connection->prepare(
+            "SELECT * FROM event WHERE user_id = :userId AND (title LIKE :searchTerm OR details LIKE :searchTerm) ORDER BY timestamp DESC"
+        );
         $sql->bindParam(':userId', $userId);
         $sql->bindParam(':searchTerm', $searchTerm);
         $sql->execute();
@@ -244,7 +254,9 @@ class DatabaseService
 
     public function getUserEventsBetweenTimeframe(int $userId, int $start, int $end) : array
     {
-        $sql = $this->connection->prepare("SELECT * FROM event WHERE user_id = :userId AND (timestamp >= :start AND timestamp <= :end)");
+        $sql = $this->connection->prepare(
+            "SELECT * FROM event WHERE user_id = :userId AND (timestamp >= :start AND timestamp <= :end)"
+        );
         $sql->bindParam(':userId', $userId);
         $sql->bindParam(':start', $start);
         $sql->bindParam(':end', $end);

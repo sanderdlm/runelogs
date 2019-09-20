@@ -51,7 +51,6 @@ class PopulateCommand extends Command
             }
 
             foreach ($clanMemberList as &$clanMember) {
-
                 $userObject = $this->databaseService->findUserByName($clanMember);
 
                 if (!$userObject) {
