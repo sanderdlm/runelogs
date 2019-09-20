@@ -71,11 +71,6 @@ class ApiService
         )[0];
     }
 
-    public function getAvatar(string $playerName): void
-    {
-        return $this->baseLegacyUrl.'m=avatar-rs/'.$this->norm($playerName).'/chat.png';
-    }
-
     public function getBulkProfiles(array $listOfUsers, int $chunkSize) : array
     {
         $output = [];
@@ -93,7 +88,8 @@ class ApiService
         };
 
         $pool = new Pool(
-            $this->client, $requests($listOfUsers),
+            $this->client,
+            $requests($listOfUsers),
             [
                 'concurrency' => $chunkSize,
                 'fulfilled' => function ($response, $index) use ($listOfUsers, &$output) {
@@ -113,7 +109,8 @@ class ApiService
                     }
                     $output[] = $outputObject;
                 }
-            ]);
+            ]
+        );
 
         $promise = $pool->promise();
         $promise->wait();
@@ -134,11 +131,11 @@ class ApiService
             }
         };
         $pool = new Pool(
-            $this->client, $requests($listOfNames),
+            $this->client,
+            $requests($listOfNames),
             [
                 'concurrency' => 25,
-                'fulfilled' => function ($response, $index) use ($listOfNames, &$output)
-                {
+                'fulfilled' => function ($response, $index) use ($listOfNames, &$output) {
                     $outputObject = (object)[];
                     $outputObject->userName = $listOfNames[$index];
 
@@ -160,7 +157,8 @@ class ApiService
                     }
                     $output[$index] = $outputObject;
                 }
-            ]);
+            ]
+        );
 
         $promise = $pool->promise();
         $promise->wait();
