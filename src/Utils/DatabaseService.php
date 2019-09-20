@@ -76,7 +76,7 @@ class DatabaseService
         $sql->execute();
     }
 
-    public function updateUser(int $userId, string $userName, int $clanId)
+    public function updateUser(int $userId, string $userName, ?int $clanId)
     {
         $sql = $this->connection->prepare("UPDATE user SET clan_id = :clanId, name = :userName WHERE id = :userId");
         $sql->bindParam(':userId', $userId);

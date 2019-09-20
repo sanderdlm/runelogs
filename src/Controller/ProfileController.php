@@ -99,6 +99,6 @@ class ProfileController extends AbstractController
      */
     public function test()
     {
-        
+
     }
 }
