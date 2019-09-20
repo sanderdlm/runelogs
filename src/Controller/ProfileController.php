@@ -80,7 +80,7 @@ class ProfileController extends AbstractController
 
         if ($user) {
             $searchTerm = $request->request->get('search');
-            if ($searchTerm !== null) { //search
+            if ($searchTerm !== null) {
                 $results = $this->databaseService->search($user->id, $searchTerm);
             }
         }
