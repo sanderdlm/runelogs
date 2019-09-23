@@ -142,7 +142,7 @@ function printEvents(events)
         eventTitle.classList.add('event-title');
 
         const eventTimestamp = document.createElement('span');
-        eventTimestamp.appendChild(document.createTextNode(dayjs.unix(event.timestamp).format("MMMM D, YYYY HH:mm")));
+        eventTimestamp.appendChild(document.createTextNode(dayjs.unix(event.timestamp).format("HH:mm")));
         eventTimestamp.classList.add('event-timestamp');
 
         const eventDetails = document.createElement('p');

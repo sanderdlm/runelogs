@@ -86,7 +86,7 @@
                             <li class="event-item">
                                 <div class="event-header">
                                     <h2 class="event-title">{{ event.title }}</h2>
-                                    <span class="event-timestamp">{{ event.timestamp|date }}</span>
+                                    <span class="event-timestamp">{{ event.timestamp|date('HH:mm') }}</span>
                                 </div>
                                 <p class="event-details">{{ event.details }}</p>
                             </li>
