@@ -5,7 +5,7 @@
 This is the GitHub repository for the Runelogs project.
 
 * This website is a Symfony 4 application.
-* It's currently hosted on 2 $5 DigitalOcean droplet sunder my personal account.
+* It's currently hosted on 2 $5 DigitalOcean droplets under my personal account.
 
 ## What
 
