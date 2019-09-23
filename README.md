@@ -5,19 +5,19 @@
 This is the GitHub repository for the Runelogs project.
 
 * This website is a Symfony 4 application.
-* We're currently hosted on 2 $5 DigitalOcean droplets.
+* It's currently hosted on 2 $5 DigitalOcean droplet sunder my personal account.
 
 ## What
 
 Runelogs runs on an hourly, recurring task that fetches Runemetrics data for all its users and stores it.
 
-We keep a single experience record per skill, per player, per day. Daily gains are calculated by subtracting two experience log from each other during runtime (but cached in Redis).
+It keeps a single experience record per skill, per player, per day. Daily gains are calculated by subtracting two experience log from each other during runtime (but cached in Redis).
 
-We also have a very rudimentary name change detection in place based on Adventure Log history.
+There's also a very rudimentary name change detection in place based on Adventure Log history.
 
 ## Spread the Word!
 
-Runelogs needs users to fill it's database! If you like the project you can help spread the word by telling your friends about us in-game, on Discord, Twitter or Reddit.
+Runelogs needs users to fill it's database! If you like the project you can help spread the word by telling your friends about it in-game, on Discord, Twitter or Reddit.
 
 ## How to Contribute
 
