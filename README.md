@@ -1,29 +1,56 @@
 # Runelogs
 
+## Overview
 
-## Storage estimates
-For each event we store the following things:
-* An ID - unsigned int
-* A user ID - unsigned int
-* The event title - 20-30 character string - ~25 bytes
-* The event description - 50-120 character string - ~75 bytes
-* A timestamp - int
+This is the GitHub repository for the Runelogs project.
 
-On average one event record takes up around 85 bytes. A full record (with index) takes up 151 bytes, which makes the index 65 bytes by itself.
+* This website is a Symfony 4 application.
+* We're currently hosted on 2 $5 DigitalOcean droplets.
 
+## What
 
-For each exp record we store the following things:
-* An ID
-* A user ID
-* The skill ID
-* A year+day unique identifier
-* The experience value
+Runelogs runs on an hourly, recurring task that fetches Runemetrics data for all its users and stores it.
 
-One average one experience log takes up around 42 bytes. The index on logs actually takes up more than the log itself, 60 bytes. This is required for (reasonable) fast fetching from the database though.
+We keep a single experience record per skill, per player, per day. Daily gains are calculated by subtracting two experience log from each other during runtime (but cached in Redis).
 
+We also have a very rudimentary name change detection in place based on Adventure Log history.
 
-Each player will have 27 experience records each day, and on average 5 events. This means the db will grow at least 2700+755 bytes per day per user, or 3.5kb.
+## Spread the Word!
 
-If we wanted to support 50k users we'd have to grow 175mb per day. With a 50GB SSD on a standard VPS that would mean 285 days of consecutive tracking before we'd hit capacity.
+Runelogs needs users to fill it's database! If you like the project you can help spread the word by telling your friends about us in-game, on Discord, Twitter or Reddit.
 
-A more reasonable approach would be to limit tracking to only site visitors or really active players.
+## How to Contribute
+
+1. Fork and clone
+2. Create a branch for the feature you'd like to add. E.g. 'add-clan-template'
+3. Once finished, submit pull request to staging branch for consideration
+
+### Contributor Style Guide
+
+2. Please use four (4) spaces to indent text; do not use tabs.
+3. Wrap all text to 120 characters.
+4. Code samples should adhere to PSR-2 or higher.
+
+## Where
+
+<https://runelo.gs>
+
+## Why
+
+Most, if not all, of the other tracker websites are closed-source and I believe we as a community can build a better product.
+
+This leads in to the project goals, which are:
+* Open-source
+* Reliable (no downtime, even during DXP)
+* Responsive, mobile view
+* Automatic tracking (don't need to visit)
+* Detect name changes
+* No fixed ownership (transfer ownership to whoever is contributing the most at that time)
+
+### Collaborators
+
+* [Sander](https://twitter.com/dreadnip)
+
+## License
+
+MIT
